@@ -72,13 +72,9 @@ class TestOCDMProvenance(unittest.TestCase):
         with self.subTest('Modification. OCDMConjunctiveGraph. filesystem counter'):
             counter_handler = FilesystemCounterHandler(os.path.join('test', 'info_dir'))
             ocdm_conjunctive_graph = OCDMConjunctiveGraph(counter_handler=counter_handler)
-            if os.path.exists(os.path.join('test', 'info_dir', 'provenance_index.json')):
-                os.remove(os.path.join('test', 'info_dir', 'provenance_index.json'))
             ocdm_conjunctive_graph.parse(os.path.join('test', 'br.nq'))
+            ocdm_conjunctive_graph.provenance.counter_handler.set_counter(1, self.subject)
             ocdm_conjunctive_graph.preexisting_finished()
-            with open(os.path.join('test', 'info_dir', 'provenance_index.json'), 'w', encoding='utf8') as outfile:
-                json_object = json.dumps({self.subject: 1}, ensure_ascii=False, indent=None)
-                outfile.write(json_object)
             ocdm_conjunctive_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy')))
             ocdm_conjunctive_graph.add((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('Bella zì')))
             ocdm_conjunctive_graph.generate_provenance()
@@ -93,6 +89,7 @@ class TestOCDMProvenance(unittest.TestCase):
             counter_handler = SqliteCounterHandler(os.path.join('test', 'database.db'))
             ocdm_conjunctive_graph = OCDMConjunctiveGraph(counter_handler=counter_handler)
             ocdm_conjunctive_graph.parse(os.path.join('test', 'br.nq'))
+            ocdm_conjunctive_graph.provenance.counter_handler.set_counter(1, self.subject)
             ocdm_conjunctive_graph.preexisting_finished()
             ocdm_conjunctive_graph.provenance.counter_handler.set_counter(1, self.subject)
             ocdm_conjunctive_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy')))

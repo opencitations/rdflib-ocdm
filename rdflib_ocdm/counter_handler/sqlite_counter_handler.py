@@ -81,7 +81,6 @@ class SqliteCounterHandler(CounterHandler):
         :type entity_name: str
         :return: The newly-updated (already incremented) counter value.
         """
-        entity_name = urllib.parse.quote(str(entity_name))
         cur_count = self.read_counter(entity_name)
         count = cur_count + 1
         self.set_counter(count, entity_name)

@@ -64,7 +64,7 @@ class FilesystemCounterHandler(CounterHandler):
             data = json.load(file)
         with open(file_path, 'w', encoding='utf8') as outfile:
             data[entity_name] = new_value
-            outfile.write(data)
+            json.dump(obj=data, fp=outfile, ensure_ascii=False, indent=False)
 
     def read_counter(self, entity_name: str) -> int:
         """
@@ -99,8 +99,7 @@ class FilesystemCounterHandler(CounterHandler):
             os.makedirs(os.path.dirname(file_path))
         if not os.path.isfile(file_path):
             with open(file_path, 'w', encoding='utf8') as outfile:
-                json_object = json.dumps({entity_name: 0}, ensure_ascii=False, indent=None)
-                outfile.write(json_object)
+                json.dump({entity_name: 0}, ensure_ascii=False, indent=None, fp=outfile)
 
     def _read_number(self, file_path: str, entity_name: str) -> int:
         self.__initialize_file_if_not_existing(file_path, entity_name)

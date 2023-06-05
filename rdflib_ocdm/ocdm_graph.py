@@ -80,7 +80,7 @@ class OCDMGraphCommons():
     def commit_changes(self):
         self.__merge_index = dict()
         self.__entity_index = dict()
-        self.preexisting_finished()
+        self.preexisting_graph = deepcopy(self)
     
     def get_provenance_graphs(self) -> ConjunctiveGraph:
         prov_g = ConjunctiveGraph()

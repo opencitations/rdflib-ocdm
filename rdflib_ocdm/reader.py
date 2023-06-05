@@ -15,9 +15,11 @@
 # SOFTWARE.
 from __future__ import annotations
 
+from typing import List
+
 from oc_ocdm.support.reporter import Reporter
 from rdflib import ConjunctiveGraph, URIRef
-from SPARQLWrapper import JSON, SPARQLWrapper
+from SPARQLWrapper import POST, XML, SPARQLWrapper
 
 from rdflib_ocdm.ocdm_graph import OCDMGraph
 
@@ -35,14 +37,20 @@ class Reader(object):
             self.reperr: Reporter = reperr
 
     @staticmethod
-    def import_entity_from_triplestore(ocdm_graph: OCDMGraph, ts_url: str, res: URIRef) -> URIRef:
+    def import_entities_from_triplestore(ocdm_graph: OCDMGraph, ts_url: str, res_list: List[URIRef]) -> URIRef:
         sparql: SPARQLWrapper = SPARQLWrapper(ts_url)
-        query: str = f"CONSTRUCT {{<{res}> ?p ?o}} WHERE {{<{res}> ?p ?o}}"
+        query: str = f'''
+            CONSTRUCT {{?s ?p ?o}} 
+            WHERE {{
+                ?s ?p ?o. 
+                VALUES ?s {{<{'> <'.join(res_list)}>}}
+        }}'''
         sparql.setQuery(query)
-        sparql.setMethod('GET')
-        result: ConjunctiveGraph = sparql.query().convert()
+        sparql.setMethod(POST)
+        sparql.setReturnFormat(XML)
+        result: ConjunctiveGraph = sparql.queryAndConvert()
         if result is not None:
             for triple in result.triples((None, None, None)):
                 ocdm_graph.add(triple)
         else:
-            raise ValueError(f"The entity {res} was not found.")
+            raise ValueError(f"An entity was not found.")
