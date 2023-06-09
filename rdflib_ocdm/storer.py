@@ -16,24 +16,38 @@
 
 from __future__ import annotations
 
+import json
 import os
 from datetime import datetime
 from typing import TYPE_CHECKING
+from zipfile import ZIP_DEFLATED, ZipFile
 
+from filelock import FileLock
 from oc_ocdm.support.reporter import Reporter
 from SPARQLWrapper import SPARQLWrapper
 
 from rdflib_ocdm.ocdm_graph import OCDMGraph, OCDMGraphCommons
 from rdflib_ocdm.query_utils import get_update_query
+from rdflib_ocdm.reader import Reader
 
 if TYPE_CHECKING:
-    from rdflib import Graph
+    from typing import Any, Dict, List, Optional, Set
+
+    from rdflib import ConjunctiveGraph, Graph, URIRef
 
 
 class Storer(object):
 
-    def __init__(self, abstract_set: OCDMGraphCommons|Graph, repok: Reporter = None, reperr: Reporter = None) -> None:
+    def __init__(self, abstract_set: OCDMGraphCommons|Graph, repok: Reporter = None, reperr: Reporter = None, output_format: str = "json-ld", zip_output: bool = False,) -> None:
         self.a_set = abstract_set
+        supported_formats: Set[str] = {'application/n-triples', 'ntriples', 'nt', 'nt11',
+                                       'application/n-quads', 'nquads', 'json-ld'}
+        if output_format not in supported_formats:
+            raise ValueError(f"Given output_format '{self.output_format}' is not supported."
+                             f" Available formats: {supported_formats}.")
+        else:
+            self.output_format: str = output_format
+        self.zip_output = zip_output
         if repok is None:
             self.repok: Reporter = Reporter(prefix="[Storer: INFO] ")
         else:
@@ -109,3 +123,58 @@ class Storer(object):
         if query_string != "":
             result &= self._query(query_string, triplestore_url, base_dir, added_statements, removed_statements)
         return result
+
+    # def store_all(self, base_dir: str, base_iri: str, context_path: str = None) -> List[str]:
+    #     self.repok.new_article()
+    #     self.reperr.new_article()
+
+    #     self.repok.add_sentence("Starting the process")
+
+    #     for relevant_path, entities_in_path in relevant_paths.items():
+    #         stored_g = None
+    #         # Here we try to obtain a reference to the currently stored graph
+    #         output_filepath = relevant_path.replace(os.path.splitext(relevant_path)[1], ".zip") if self.zip_output else relevant_path
+    #         if os.path.exists(output_filepath):
+    #             stored_g = Reader(repok=self.repok, reperr=self.reperr).load(output_filepath)
+    #         if stored_g is None:
+    #             stored_g = ConjunctiveGraph()
+    #         for entity_in_path in entities_in_path:
+    #             self.store(entity_in_path, stored_g, relevant_path, context_path, False)
+    #         self._store_in_file(stored_g, relevant_path, context_path)
+
+    #     return list(relevant_paths.keys())
+
+    # def _store_in_file(self, cur_g: Graph|ConjunctiveGraph, cur_file_path: str, context_path: str = None) -> None:
+    #     # Note: the following lines from here and until 'cur_json_ld' are a sort of hack for including all
+    #     # the triples of the input graph into the final stored file. Somehow, some of them are not written
+    #     # in such file otherwise - in particular the provenance ones.
+    #     new_g: ConjunctiveGraph = ConjunctiveGraph()
+    #     for s, p, o in cur_g.triples((None, None, None)):
+    #         g_iri: Optional[URIRef] = None
+    #         for g_context in cur_g.contexts((s, p, o)):
+    #             g_iri = g_context.identifier
+    #             break
+
+    #         new_g.addN([(s, p, o, g_iri)])
+    #     zip_file_path = cur_file_path.replace(os.path.splitext(cur_file_path)[1], ".zip")
+    #     lock = FileLock(f"{zip_file_path}.lock") if self.zip_output else FileLock(f"{cur_file_path}.lock")
+    #     with lock:
+    #         if self.zip_output:
+    #             zip_file = ZipFile(zip_file_path, mode="w", compression=ZIP_DEFLATED, allowZip64=True)
+    #         if self.output_format == "json-ld":
+    #             cur_json_ld: Any = json.loads(new_g.serialize(format="json-ld"))
+    #             if self.zip_output:
+    #                 dumped_json: bytes = json.dumps(cur_json_ld, ensure_ascii=False).encode('utf-8')
+    #                 zip_file.writestr(zinfo_or_arcname=os.path.basename(cur_file_path), data=dumped_json)
+    #             else:
+    #                 with open(cur_file_path, 'wt', encoding='utf-8') as f:
+    #                     json.dump(cur_json_ld, f, ensure_ascii=False)
+    #         else:
+    #             if self.zip_output:
+    #                 rdf_serialization: bytes = new_g.serialize(destination=None, format=self.output_format, encoding="utf-8")
+    #                 zip_file.writestr(zinfo_or_arcname=os.path.basename(cur_file_path), data=rdf_serialization)
+    #             else:
+    #                 new_g.serialize(destination=cur_file_path, format=self.output_format, encoding="utf-8")
+    #         if self.zip_output:
+    #             zip_file.close()
+    #     self.repok.add_sentence(f"File '{cur_file_path}' added.")
