@@ -2,6 +2,7 @@
 test/info_dir
 test/database.db
 test/blazegraph.*
+blazegraph.*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -62,3 +62,4 @@ class ProvEntity(AbstractEntity):
         self._create_type(ProvEntity.iri_entity, prov_subject + '/prov/')
         if str(self.res) not in g.res_to_entity:
             g.res_to_entity[str(self.res)] = self
+            g.all_entities.add(self.res)

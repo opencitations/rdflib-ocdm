@@ -17,15 +17,16 @@
 import redis
 
 
-class RedisDB:
-    def __init__(self, host, port, password=None):
+class RedisCounterHandler:
+    def __init__(self, host, port, db: int, password=None):
         self.host = host
         self.port = port
+        self.db = db
         self.password = password
         self.connection = None
 
     def connect(self):
-        self.connection = redis.Redis(host=self.host, port=self.port, password=self.password)
+        self.connection = redis.Redis(host=self.host, port=self.port, db=self.db, password=self.password)
 
     def disconnect(self):
         if self.connection:
@@ -51,3 +52,6 @@ class RedisDB:
         count = cur_count + 1
         self.set_counter(count, entity_name)
         return count
+    
+    def flush(self):
+        self.connection.flushdb()

@@ -36,12 +36,14 @@ class OCDMGraphCommons():
     def __init__(self, counter_handler: CounterHandler):
         self.__merge_index = dict()
         self.__entity_index = dict()
+        self.all_entities = set()
         self.provenance = OCDMProvenance(self, counter_handler)
 
     def preexisting_finished(self: Graph|ConjunctiveGraph|OCDMGraphCommons, resp_agent: str = None, source: str = None, c_time: str = None):
         self.preexisting_graph = deepcopy(self)
         for subject in self.subjects(unique=True):
             self.__entity_index[subject] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': source}
+            self.all_entities.add(subject)
             count = self.provenance.counter_handler.read_counter(subject)
             if count == 0:
                 if c_time is None:
@@ -62,6 +64,9 @@ class OCDMGraphCommons():
             self.remove(triple)
         self.__merge_index.setdefault(res, set()).add(other)
         self.__entity_index[other]['to_be_deleted'] = True
+    
+    def mark_as_deleted(self, res: URIRef) -> None:
+        self.__entity_index[res]['to_be_deleted'] = True
 
     @property
     def merge_index(self) -> dict:

@@ -97,8 +97,8 @@ class Storer(object):
         removed_statements: int = 0
         skipped_queries: int = 0
         result: bool = True
-        for idx, entity in enumerate(self.a_set.subjects(unique=True)):
-            entity_type = 'graph' if isinstance(self.a_set, OCDMGraph) else 'prov'
+        entity_type = 'graph' if isinstance(self.a_set, OCDMGraph) else 'prov'
+        for idx, entity in enumerate(list(self.a_set.all_entities)):
             update_query, n_added, n_removed = get_update_query(self.a_set, entity, entity_type)
             if update_query == "":
                 skipped_queries += 1

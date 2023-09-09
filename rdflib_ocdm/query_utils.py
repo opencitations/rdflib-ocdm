@@ -55,7 +55,7 @@ def get_insert_query(data: ConjunctiveGraph|Graph, graph_iri: URIRef = None) -> 
 
 def get_update_query(a_set: OCDMGraphCommons|ConjunctiveGraph|Graph, entity: URIRef, entity_type = 'graph') -> Tuple[str, int, int]:
     if entity_type == 'graph':
-        to_be_deleted: bool = a_set.entity_index[entity]['to_be_deleted']if entity in a_set.entity_index else False
+        to_be_deleted: bool = a_set.entity_index[entity]['to_be_deleted'] if entity in a_set.entity_index else False
         preexisting_graph = get_entity_subgraph(a_set.preexisting_graph, entity)
         graph_iri = None
     elif entity_type == 'prov':

@@ -32,7 +32,7 @@ class SqliteCounterHandler(CounterHandler):
         :type info_dir: str
         """
         sqlite3.threadsafety = 3
-        self.con = sqlite3.connect(database)
+        self.con = sqlite3.connect(database, check_same_thread=False)
         self.cur = self.con.cursor()
         self.cur.execute("""CREATE TABLE IF NOT EXISTS info(
             entity TEXT PRIMARY KEY, 

@@ -42,6 +42,7 @@ class OCDMProvenance(ConjunctiveGraph):
         self.prov_g = prov_subj_graph
         # The following variable maps a URIRef with the related provenance entity
         self.res_to_entity: Dict[URIRef, ProvEntity] = dict()
+        self.all_entities = set()
         if counter_handler is None:
             counter_handler = InMemoryCounterHandler()
         self.counter_handler = counter_handler
@@ -53,36 +54,48 @@ class OCDMProvenance(ConjunctiveGraph):
             cur_time: str = datetime.fromtimestamp(c_time, tz=timezone.utc).replace(microsecond=0).isoformat(sep="T")
         merge_index = self.prov_g.merge_index
         prov_g_subjects = OrderedDict(sorted(self.prov_g.entity_index.items(), key=lambda x: not x[1]['to_be_deleted'], reverse=True))
-        for cur_subj in prov_g_subjects:
+        for cur_subj, cur_subj_metadata in prov_g_subjects.items():
             last_snapshot_res: Optional[URIRef] = self._retrieve_last_snapshot(str(cur_subj))
-            if last_snapshot_res is None:
-                # CREATION SNAPSHOT
-                cur_snapshot: SnapshotEntity = self._create_snapshot(cur_subj, cur_time)
-                cur_snapshot.has_description(f"The entity '{str(cur_subj)}' has been created.")
-            else:
-                update_query = get_update_query(self.prov_g, cur_subj)[0]
-                cur_subj_merge_index = {k: v for k, v in merge_index.items() if k == cur_subj}
-                snapshots_list = self._get_snapshots_from_merge_list(cur_subj_merge_index)
-                if update_query and len(snapshots_list) == 0:
-                    # MODIFICATION SNAPSHOT
-                    last_snapshot: SnapshotEntity = self.add_se(prov_subject=cur_subj, res=last_snapshot_res)
-                    last_snapshot.has_invalidation_time(cur_time)
-                    cur_snapshot: SnapshotEntity = self._create_snapshot(cur_subj, cur_time)
-                    cur_snapshot.derives_from(last_snapshot)
-                    cur_snapshot.has_description(f"The entity '{str(cur_subj)}' was modified.")
-                    cur_snapshot.has_update_action(update_query)
-                elif len(snapshots_list) > 0:
-                    # MERGE SNAPSHOT
-                    last_snapshot: SnapshotEntity = self.add_se(prov_subject=cur_subj, res=last_snapshot_res)
-                    last_snapshot.has_invalidation_time(cur_time)
-                    cur_snapshot: SnapshotEntity = self._create_snapshot(cur_subj, cur_time)
-                    cur_snapshot.derives_from(last_snapshot)
-                    for snapshot in snapshots_list:
-                        cur_snapshot.derives_from(snapshot)
-                    if update_query:
-                        cur_snapshot.has_update_action(update_query)
-                    cur_snapshot.has_description(self._get_merge_description(cur_subj, snapshots_list))
+            if cur_subj_metadata['to_be_deleted']:
+                update_query: str = get_update_query(self.prov_g, cur_subj)[0]
+                # DELETION SNAPSHOT
+                last_snapshot: SnapshotEntity = self.add_se(prov_subject=cur_subj, res=last_snapshot_res)
+                last_snapshot.has_invalidation_time(cur_time)
 
+                cur_snapshot: SnapshotEntity = self._create_snapshot(cur_subj, cur_time)
+                cur_snapshot.derives_from(last_snapshot)
+                cur_snapshot.has_invalidation_time(cur_time)
+                cur_snapshot.has_description(f"The entity '{str(cur_subj)}' has been deleted.")
+                cur_snapshot.has_update_action(update_query)
+            else:
+                if last_snapshot_res is None:
+                    # CREATION SNAPSHOT
+                    cur_snapshot: SnapshotEntity = self._create_snapshot(cur_subj, cur_time)
+                    cur_snapshot.has_description(f"The entity '{str(cur_subj)}' has been created.")
+                else:
+                    update_query = get_update_query(self.prov_g, cur_subj)[0]
+                    cur_subj_merge_index = {k: v for k, v in merge_index.items() if k == cur_subj}
+                    snapshots_list = self._get_snapshots_from_merge_list(cur_subj_merge_index)
+                    if update_query and len(snapshots_list) == 0:
+                        # MODIFICATION SNAPSHOT
+                        last_snapshot: SnapshotEntity = self.add_se(prov_subject=cur_subj, res=last_snapshot_res)
+                        last_snapshot.has_invalidation_time(cur_time)
+                        cur_snapshot: SnapshotEntity = self._create_snapshot(cur_subj, cur_time)
+                        cur_snapshot.derives_from(last_snapshot)
+                        cur_snapshot.has_description(f"The entity '{str(cur_subj)}' was modified.")
+                        cur_snapshot.has_update_action(update_query)
+                    elif len(snapshots_list) > 0:
+                        # MERGE SNAPSHOT
+                        last_snapshot: SnapshotEntity = self.add_se(prov_subject=cur_subj, res=last_snapshot_res)
+                        last_snapshot.has_invalidation_time(cur_time)
+                        cur_snapshot: SnapshotEntity = self._create_snapshot(cur_subj, cur_time)
+                        cur_snapshot.derives_from(last_snapshot)
+                        for snapshot in snapshots_list:
+                            cur_snapshot.derives_from(snapshot)
+                        if update_query:
+                            cur_snapshot.has_update_action(update_query)
+                        cur_snapshot.has_description(self._get_merge_description(cur_subj, snapshots_list))
+    
     @staticmethod
     def _get_merge_description(cur_subj: URIRef, snapshots_list: List[SnapshotEntity]) -> str:
         merge_description: str = f"The entity '{str(cur_subj)}' was merged"
