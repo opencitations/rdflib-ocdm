@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from typing import List, Tuple, Optional
 
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from rdflib import ConjunctiveGraph, Graph, URIRef
 
@@ -47,9 +47,9 @@ class OCDMGraphCommons():
             count = self.provenance.counter_handler.read_counter(subject)
             if count == 0:
                 if c_time is None:
-                    cur_time: str = datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat(sep="T")
+                    cur_time: str = (datetime.now(tz=timezone.utc).replace(microsecond=0) - timedelta(seconds=5)).isoformat(sep="T")
                 else:
-                    cur_time: str = datetime.fromtimestamp(c_time, tz=timezone.utc).replace(microsecond=0).isoformat(sep="T")
+                    cur_time: str = (datetime.fromtimestamp(c_time, tz=timezone.utc).replace(microsecond=0) - timedelta(seconds=5)).isoformat(sep="T")
                 new_snapshot: SnapshotEntity = self.provenance._create_snapshot(subject, cur_time)
                 new_snapshot.has_description(f"The entity '{str(subject)}' has been created.")
 
