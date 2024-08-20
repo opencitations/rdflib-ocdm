@@ -19,12 +19,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import List, Tuple, Optional
+    _SubjectType = Node
+    _PredicateType = Node
+    _ObjectType = Node
+    _TripleType = Tuple["_SubjectType", "_PredicateType", "_ObjectType"]
+    from typing import List, Tuple, Optional, Union, Any
 
 from copy import deepcopy
 from datetime import datetime, timezone, timedelta
 
 from rdflib import ConjunctiveGraph, Graph, URIRef
+from rdflib.term import Node
 
 from rdflib_ocdm.counter_handler.counter_handler import CounterHandler
 from rdflib_ocdm.prov.prov_entity import ProvEntity
@@ -100,8 +105,53 @@ class OCDMGraph(OCDMGraphCommons, Graph):
         self.preexisting_graph = Graph()
         OCDMGraphCommons.__init__(self, counter_handler)
 
+    def add(self, triple: "_TripleType"):
+        """Add a triple with self as context"""
+        s, p, o = triple
+        assert isinstance(s, Node), "Subject %s must be an rdflib term" % (s,)
+        assert isinstance(p, Node), "Predicate %s must be an rdflib term" % (p,)
+        assert isinstance(o, Node), "Object %s must be an rdflib term" % (o,)
+        self._Graph__store.add((s, p, o), self, quoted=False)
+        
+        # Add the subject to all_entities if it's not already present
+        if s not in self.all_entities:
+            self.all_entities.add(s)
+        
+        return self
+
 class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
     def __init__(self, counter_handler: CounterHandler = None):
         ConjunctiveGraph.__init__(self)
         self.preexisting_graph = ConjunctiveGraph()
         OCDMGraphCommons.__init__(self, counter_handler)
+
+    def add(
+        self,
+        triple_or_quad: Union[
+            Tuple["_SubjectType", "_PredicateType", "_ObjectType", Optional[Any]],
+            "_TripleType",
+        ],
+    ) -> "ConjunctiveGraph":
+        """
+        Add a triple or quad to the store.
+
+        if a triple is given it is added to the default context
+        """
+
+        s, p, o, c = self._spoc(triple_or_quad, default=True)
+
+        _assertnode(s, p, o)
+
+        # type error: Argument "context" to "add" of "Store" has incompatible type "Optional[Graph]"; expected "Graph"
+        self.store.add((s, p, o), context=c, quoted=False)  # type: ignore[arg-type]
+
+        # Add the subject to all_entities if it's not already present
+        if s not in self.all_entities:
+            self.all_entities.add(s)
+
+        return self
+
+def _assertnode(*terms):
+    for t in terms:
+        assert isinstance(t, Node), "Term %s must be an rdflib term" % (t,)
+    return True
