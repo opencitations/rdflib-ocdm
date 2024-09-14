@@ -15,13 +15,13 @@
 # SOFTWARE.
 from __future__ import annotations
 
-from typing import List
+from typing import List, Union
 
 from oc_ocdm.support.reporter import Reporter
-from rdflib import ConjunctiveGraph, URIRef
-from SPARQLWrapper import POST, XML, SPARQLWrapper
+from rdflib import ConjunctiveGraph, Graph, Literal, URIRef
+from SPARQLWrapper import JSON, POST, XML, SPARQLWrapper
 
-from rdflib_ocdm.ocdm_graph import OCDMGraph
+from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
 
 
 class Reader(object):
@@ -37,20 +37,73 @@ class Reader(object):
             self.reperr: Reporter = reperr
 
     @staticmethod
-    def import_entities_from_triplestore(ocdm_graph: OCDMGraph, ts_url: str, res_list: List[URIRef]) -> URIRef:
+    def import_entities_from_triplestore(ocdm_graph: Union[OCDMGraph, OCDMConjunctiveGraph], ts_url: str, res_list: List[URIRef]) -> None:
         sparql: SPARQLWrapper = SPARQLWrapper(ts_url)
-        query: str = f'''
-            CONSTRUCT {{?s ?p ?o}} 
-            WHERE {{
-                ?s ?p ?o. 
-                VALUES ?s {{<{'> <'.join(res_list)}>}}
-        }}'''
-        sparql.setQuery(query)
-        sparql.setMethod(POST)
-        sparql.setReturnFormat(XML)
-        result: ConjunctiveGraph = sparql.queryAndConvert()
-        if result is not None:
-            for triple in result.triples((None, None, None)):
-                ocdm_graph.add(triple)
+        
+        if isinstance(ocdm_graph, OCDMConjunctiveGraph):
+            query: str = f'''
+                SELECT ?g ?s ?p ?o (LANG(?o) AS ?lang)
+                WHERE {{
+                    GRAPH ?g {{
+                        ?s ?p ?o.
+                        VALUES ?s {{<{'> <'.join(res_list)}>}}
+                    }}
+                }}
+            '''
+            sparql.setQuery(query)
+            sparql.setMethod(POST)
+            sparql.setReturnFormat(JSON)
+            result = sparql.queryAndConvert()
+            
+            if result and 'results' in result and 'bindings' in result['results']:
+                temp_graph = ConjunctiveGraph()
+                for binding in result['results']['bindings']:
+                    graph_uri = URIRef(binding['g']['value'])
+                    subject = URIRef(binding['s']['value'])
+                    predicate = URIRef(binding['p']['value'])
+                    
+                    obj_data = binding['o']
+                    if obj_data['type'] == 'uri':
+                        obj = URIRef(obj_data['value'])
+                    else:
+                        value = obj_data['value']
+                        lang = binding.get('lang', {}).get('value')
+                        datatype = obj_data.get('datatype')
+                        
+                        if lang:
+                            obj = Literal(value, lang=lang)
+                        elif datatype:
+                            obj = Literal(value, datatype=URIRef(datatype))
+                        else:
+                            obj = Literal(value)
+
+                    temp_graph.add((subject, predicate, obj, graph_uri))
+                
+                for quad in temp_graph.quads():
+                    ocdm_graph.add(quad)
+            else:
+                raise ValueError("No entities were found.")
+        
+        elif isinstance(ocdm_graph, OCDMGraph):
+            query: str = f'''
+                CONSTRUCT {{
+                    ?s ?p ?o
+                }}
+                WHERE {{
+                    ?s ?p ?o. 
+                    VALUES ?s {{<{'> <'.join(res_list)}>}}
+                }}
+            '''
+            sparql.setQuery(query)
+            sparql.setMethod(POST)
+            sparql.setReturnFormat(XML)
+            result: Graph = sparql.queryAndConvert()
+            
+            if result is not None and len(result) > 0:
+                for triple in result:
+                    ocdm_graph.add(triple)
+            else:
+                raise ValueError("No entities were found.")
+        
         else:
-            raise ValueError(f"An entity was not found.")
+            raise TypeError("ocdm_graph must be either OCDMGraph or OCDMConjunctiveGraph")

@@ -26,7 +26,8 @@ from filelock import FileLock
 from oc_ocdm.support.reporter import Reporter
 from SPARQLWrapper import SPARQLWrapper
 
-from rdflib_ocdm.ocdm_graph import OCDMGraph, OCDMGraphCommons
+from rdflib_ocdm.ocdm_graph import (OCDMConjunctiveGraph, OCDMGraph,
+                                    OCDMGraphCommons)
 from rdflib_ocdm.query_utils import get_update_query
 from rdflib_ocdm.reader import Reader
 
@@ -97,7 +98,7 @@ class Storer(object):
         removed_statements: int = 0
         skipped_queries: int = 0
         result: bool = True
-        entity_type = 'graph' if isinstance(self.a_set, OCDMGraph) else 'prov'
+        entity_type = 'graph' if isinstance(self.a_set, OCDMGraph) or isinstance(self.a_set, OCDMConjunctiveGraph) else 'prov'
         for idx, entity in enumerate(list(self.a_set.all_entities)):
             update_query, n_added, n_removed = get_update_query(self.a_set, entity, entity_type)
             if update_query == "":
