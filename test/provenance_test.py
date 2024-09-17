@@ -44,7 +44,7 @@ class TestOCDMProvenance(unittest.TestCase):
 
     def test_generate_provenance(self):
         cur_time = 1607375859.846196
-        cur_time_str = '2020-12-07T21:17:39+00:00'
+        cur_time_str = '2020-12-07T21:17:34+00:00'
         with self.subTest('Creation -> No snapshot -> Modification. OCDMGraph. in-memory counter'):
             ocdm_graph = OCDMGraph()
             ocdm_graph.parse(os.path.join('test', 'br.nt'))
@@ -124,7 +124,7 @@ class TestOCDMProvenance(unittest.TestCase):
         se_id_0636064270_1 = ocdm_conjunctive_graph.get_entity(f'https://w3id.org/oc/meta/id/0636064270/prov/se/1')
         se_id_0636064270_2 = ocdm_conjunctive_graph.get_entity(f'https://w3id.org/oc/meta/id/0636064270/prov/se/2')
         self.assertEqual(se_id_0636064270_1.get_description(), "The entity 'https://w3id.org/oc/meta/id/0636064270' has been created.")
-        self.assertEqual(se_id_0636064270_2.get_description(), "The entity 'https://w3id.org/oc/meta/id/0636064270' was modified.")
+        self.assertEqual(se_id_0636064270_2.get_description(), "The entity 'https://w3id.org/oc/meta/id/0636064270' has been deleted.")
         self.assertEqual(se_id_0636064270_2.get_update_action(), "DELETE DATA { GRAPH <https://w3id.org/oc/meta/id/> { <https://w3id.org/oc/meta/id/0636064270> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/spar/datacite/Identifier> . } }")
 
 if __name__ == '__main__':
