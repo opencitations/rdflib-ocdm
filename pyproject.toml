@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rdflib-ocdm"
-version = "0.3.9"
+version = "0.3.10"
 description = ""
 authors = ["arcangelo7 <arcangelomas@gmail.com>"]
 license = "ISC"
@@ -10,7 +10,7 @@ packages = [{include = "rdflib_ocdm"}]
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0.0"
 rdflib = "^6.2.0"
-oc-ocdm = "^7.1.7"
+oc-ocdm = "^7.1.7,<10.0.0"
 sparqlwrapper = "^2.0.0"
 redis = "^4.5.5"
 time-agnostic-library = "^4.4.1"
