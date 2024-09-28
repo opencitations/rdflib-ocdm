@@ -339,19 +339,20 @@ source = ["Cython (>=3.0.11)"]
 
 [[package]]
 name = "oc-ocdm"
-version = "7.3.5"
+version = "9.0.0"
 description = "Object mapping library for manipulating RDF graphs that are compliant with the OpenCitations datamodel."
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = "<4.0,>=3.8"
 files = [
-    {file = "oc_ocdm-7.3.5-py3-none-any.whl", hash = "sha256:c08ebea84ae9ee3e8bc98847ecc7d53c0e80c0be13ec8da63a8e259a71077df0"},
-    {file = "oc_ocdm-7.3.5.tar.gz", hash = "sha256:72d8a1a74cb31df70f9d5c518da3e21647743f861189f3af40073fdc1fda17ae"},
+    {file = "oc_ocdm-9.0.0-py3-none-any.whl", hash = "sha256:67be69c11a860779bd363d98e7d8bdde37a76cc6a67ed5b9582b8a6529543c0a"},
+    {file = "oc_ocdm-9.0.0.tar.gz", hash = "sha256:cd5fda38c75520d7c5b460f9bf9f1501873ed9106f3170bdbdc794d4f2e7b3c3"},
 ]
 
 [package.dependencies]
 filelock = ">=3.6.0,<4.0.0"
 pyshacl = "0.23.0"
 rdflib = ">=6.0.0,<7.0.0"
+redis = ">=4.5.5,<5.0.0"
 setuptools = ">=68.2.2,<69.0.0"
 SPARQLWrapper = "2.0.0"
 
@@ -641,4 +642,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0.0"
-content-hash = "a53c63f7674dbf90fff0626b5dec3bca5f0a07752ba94f33c743dd25780bb36c"
+content-hash = "8569f976d1a82463856eeac7443fb81b5ab574bbe58db0c7512cece91b196083"
