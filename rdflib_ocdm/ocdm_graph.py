@@ -47,7 +47,7 @@ class OCDMGraphCommons():
     def preexisting_finished(self: Graph|ConjunctiveGraph|OCDMGraphCommons, resp_agent: str = None, source: str = None, c_time: str = None):
         self.preexisting_graph = deepcopy(self)
         for subject in self.subjects(unique=True):
-            self.__entity_index[subject] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': source}
+            self.entity_index[subject] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': source}
             self.all_entities.add(subject)
             count = self.provenance.counter_handler.read_counter(subject)
             if count == 0:
@@ -68,10 +68,10 @@ class OCDMGraphCommons():
         for triple in triples_list:
             self.remove(triple)
         self.__merge_index.setdefault(res, set()).add(other)
-        self.__entity_index[other]['to_be_deleted'] = True
+        self.entity_index[other]['to_be_deleted'] = True
     
     def mark_as_deleted(self, res: URIRef) -> None:
-        self.__entity_index[res]['to_be_deleted'] = True
+        self.entity_index[res]['to_be_deleted'] = True
 
     @property
     def merge_index(self) -> dict:
@@ -105,7 +105,7 @@ class OCDMGraph(OCDMGraphCommons, Graph):
         self.preexisting_graph = Graph()
         OCDMGraphCommons.__init__(self, counter_handler)
 
-    def add(self, triple: "_TripleType"):
+    def add(self, triple: "_TripleType", resp_agent = None, source = None):
         """Add a triple with self as context"""
         s, p, o = triple
         assert isinstance(s, Node), "Subject %s must be an rdflib term" % (s,)
@@ -116,6 +116,9 @@ class OCDMGraph(OCDMGraphCommons, Graph):
         # Add the subject to all_entities if it's not already present
         if s not in self.all_entities:
             self.all_entities.add(s)
+        
+        if s not in self.entity_index:
+            self.entity_index[s] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': source}
         
         return self
 
@@ -131,6 +134,7 @@ class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
             Tuple["_SubjectType", "_PredicateType", "_ObjectType", Optional[Any]],
             "_TripleType",
         ],
+        resp_agent = None, source = None
     ) -> "ConjunctiveGraph":
         """
         Add a triple or quad to the store.
@@ -148,6 +152,9 @@ class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
         # Add the subject to all_entities if it's not already present
         if s not in self.all_entities:
             self.all_entities.add(s)
+
+        if s not in self.entity_index:
+            self.entity_index[s] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': source}
 
         return self
 
