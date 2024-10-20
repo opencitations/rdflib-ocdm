@@ -18,19 +18,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import rdflib
+import rdflib.plugin as plugin
+from rdflib.exceptions import ParserError
+from rdflib.parser import InputSource, Parser, create_input_source
+
 if TYPE_CHECKING:
     _SubjectType = Node
     _PredicateType = Node
     _ObjectType = Node
     _TripleType = Tuple["_SubjectType", "_PredicateType", "_ObjectType"]
-    from typing import List, Tuple, Optional, Union, Any
+    from typing import (IO, TYPE_CHECKING, Any, BinaryIO, List, Optional, TextIO,
+                        Union, List, Tuple)
 
+import pathlib
 from copy import deepcopy
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from rdflib import ConjunctiveGraph, Graph, URIRef
 from rdflib.term import Node
-
 from rdflib_ocdm.counter_handler.counter_handler import CounterHandler
 from rdflib_ocdm.prov.prov_entity import ProvEntity
 from rdflib_ocdm.prov.provenance import OCDMProvenance
@@ -44,10 +50,10 @@ class OCDMGraphCommons():
         self.all_entities = set()
         self.provenance = OCDMProvenance(self, counter_handler)
 
-    def preexisting_finished(self: Graph|ConjunctiveGraph|OCDMGraphCommons, resp_agent: str = None, source: str = None, c_time: str = None):
+    def preexisting_finished(self: Graph|ConjunctiveGraph|OCDMGraphCommons, resp_agent: str = None, primary_source: str = None, c_time: str = None):
         self.preexisting_graph = deepcopy(self)
         for subject in self.subjects(unique=True):
-            self.entity_index[subject] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': source}
+            self.entity_index[subject] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': primary_source}
             self.all_entities.add(subject)
             count = self.provenance.counter_handler.read_counter(subject)
             if count == 0:
@@ -98,14 +104,14 @@ class OCDMGraphCommons():
             for triple in prov_entity.g.triples((None, None, None)):
                 prov_g.add((triple[0], triple[1], triple[2], URIRef(prov_entity.prov_subject + '/prov/')))
         return prov_g
-    
+
 class OCDMGraph(OCDMGraphCommons, Graph):
     def __init__(self, counter_handler: CounterHandler = None):
         Graph.__init__(self)
         self.preexisting_graph = Graph()
         OCDMGraphCommons.__init__(self, counter_handler)
 
-    def add(self, triple: "_TripleType", resp_agent = None, source = None):
+    def add(self, triple: "_TripleType", resp_agent = None, primary_source = None):
         """Add a triple with self as context"""
         s, p, o = triple
         assert isinstance(s, Node), "Subject %s must be an rdflib term" % (s,)
@@ -118,8 +124,152 @@ class OCDMGraph(OCDMGraphCommons, Graph):
             self.all_entities.add(s)
         
         if s not in self.entity_index:
-            self.entity_index[s] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': source}
+            self.entity_index[s] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': primary_source}
         
+        return self
+
+    def parse(
+        self,
+        source: Optional[
+            Union[IO[bytes], TextIO, InputSource, str, bytes, pathlib.PurePath]
+        ] = None,
+        publicID: Optional[str] = None,  # noqa: N803
+        format: Optional[str] = None,
+        location: Optional[str] = None,
+        file: Optional[Union[BinaryIO, TextIO]] = None,
+        data: Optional[Union[str, bytes]] = None,
+        resp_agent: URIRef = None,
+        primary_source: URIRef = None,
+        **args: Any,
+    ) -> "Graph":
+        """
+        Parse an RDF source adding the resulting triples to the Graph.
+
+        The source is specified using one of source, location, file or data.
+
+        .. caution::
+
+           This method can access directly or indirectly requested network or
+           file resources, for example, when parsing JSON-LD documents with
+           ``@context`` directives that point to a network location.
+
+           When processing untrusted or potentially malicious documents,
+           measures should be taken to restrict network and file access.
+
+           For information on available security measures, see the RDFLib
+           :doc:`Security Considerations </security_considerations>`
+           documentation.
+
+        :Parameters:
+
+          - ``source``: An InputSource, file-like object, or string. In the case
+            of a string the string is the location of the source.
+          - ``location``: A string indicating the relative or absolute URL of
+            the source. Graph's absolutize method is used if a relative location
+            is specified.
+          - ``file``: A file-like object.
+          - ``data``: A string containing the data to be parsed.
+          - ``format``: Used if format can not be determined from source, e.g.
+            file extension or Media Type. Defaults to text/turtle. Format
+            support can be extended with plugins, but "xml", "n3" (use for
+            turtle), "nt" & "trix" are built in.
+          - ``publicID``: the logical URI to use as the document base. If None
+            specified the document location is used (at least in the case where
+            there is a document location).
+
+        :Returns:
+
+          - self, the graph instance.
+
+        Examples:
+
+        >>> my_data = '''
+        ... <rdf:RDF
+        ...   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        ...   xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+        ... >
+        ...   <rdf:Description>
+        ...     <rdfs:label>Example</rdfs:label>
+        ...     <rdfs:comment>This is really just an example.</rdfs:comment>
+        ...   </rdf:Description>
+        ... </rdf:RDF>
+        ... '''
+        >>> import os, tempfile
+        >>> fd, file_name = tempfile.mkstemp()
+        >>> f = os.fdopen(fd, "w")
+        >>> dummy = f.write(my_data)  # Returns num bytes written
+        >>> f.close()
+
+        >>> g = Graph()
+        >>> result = g.parse(data=my_data, format="application/rdf+xml")
+        >>> len(g)
+        2
+
+        >>> g = Graph()
+        >>> result = g.parse(location=file_name, format="application/rdf+xml")
+        >>> len(g)
+        2
+
+        >>> g = Graph()
+        >>> with open(file_name, "r") as f:
+        ...     result = g.parse(f, format="application/rdf+xml")
+        >>> len(g)
+        2
+
+        >>> os.remove(file_name)
+
+        >>> # default turtle parsing
+        >>> result = g.parse(data="<http://example.com/a> <http://example.com/a> <http://example.com/a> .")
+        >>> len(g)
+        3
+
+        """
+
+        source = create_input_source(
+            source=source,
+            publicID=publicID,
+            location=location,
+            file=file,
+            data=data,
+            format=format,
+        )
+        if format is None:
+            format = source.content_type
+        could_not_guess_format = False
+        if format is None:
+            if (
+                hasattr(source, "file")
+                and getattr(source.file, "name", None)
+                and isinstance(source.file.name, str)
+            ):
+                format = rdflib.util.guess_format(source.file.name)
+            if format is None:
+                format = "turtle"
+                could_not_guess_format = True
+        parser = plugin.get(format, Parser)()
+        try:
+            # TODO FIXME: Parser.parse should have **kwargs argument.
+            parser.parse(source, self, **args)
+        except SyntaxError as se:
+            if could_not_guess_format:
+                raise ParserError(
+                    "Could not guess RDF format for %r from file extension so tried Turtle but failed."
+                    "You can explicitly specify format using the format argument."
+                    % source
+                )
+            else:
+                raise se
+        finally:
+            if source.auto_close:
+                source.close()
+
+        for subject in self.subjects(unique=True):
+            if subject not in self.all_entities:
+                self.all_entities.add(subject)
+
+            if subject not in self.entity_index:
+                self.entity_index[subject] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': primary_source}
+
         return self
 
 class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
@@ -134,7 +284,8 @@ class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
             Tuple["_SubjectType", "_PredicateType", "_ObjectType", Optional[Any]],
             "_TripleType",
         ],
-        resp_agent = None, source = None
+        resp_agent = None, 
+        primary_source = None
     ) -> "ConjunctiveGraph":
         """
         Add a triple or quad to the store.
@@ -154,9 +305,82 @@ class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
             self.all_entities.add(s)
 
         if s not in self.entity_index:
-            self.entity_index[s] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': source}
+            self.entity_index[s] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': primary_source}
 
         return self
+
+    def parse(
+        self,
+        source: Optional[
+            Union[IO[bytes], TextIO, InputSource, str, bytes, pathlib.PurePath]
+        ] = None,
+        publicID: Optional[str] = None,  # noqa: N803
+        format: Optional[str] = None,
+        location: Optional[str] = None,
+        file: Optional[Union[BinaryIO, TextIO]] = None,
+        data: Optional[Union[str, bytes]] = None,
+        resp_agent: URIRef = None,
+        primary_source: URIRef = None,
+        **args: Any,
+    ) -> "Graph":
+        """
+        Parse source adding the resulting triples to its own context
+        (sub graph of this graph).
+
+        See :meth:`rdflib.graph.Graph.parse` for documentation on arguments.
+
+        :Returns:
+
+        The graph into which the source was parsed. In the case of n3
+        it returns the root context.
+
+        .. caution::
+
+           This method can access directly or indirectly requested network or
+           file resources, for example, when parsing JSON-LD documents with
+           ``@context`` directives that point to a network location.
+
+           When processing untrusted or potentially malicious documents,
+           measures should be taken to restrict network and file access.
+
+           For information on available security measures, see the RDFLib
+           :doc:`Security Considerations </security_considerations>`
+           documentation.
+        """
+
+        source = create_input_source(
+            source=source,
+            publicID=publicID,
+            location=location,
+            file=file,
+            data=data,
+            format=format,
+        )
+
+        # NOTE on type hint: `xml.sax.xmlreader.InputSource.getPublicId` has no
+        # type annotations but given that systemId should be a string, and
+        # given that there is no specific mention of type for publicId, it
+        # seems reasonable to assume it should also be a string. Furthermore,
+        # create_input_source will ensure that publicId is not None, though it
+        # would be good if this guarantee was made more explicit i.e. by type
+        # hint on InputSource (TODO/FIXME).
+        g_id: str = publicID and publicID or source.getPublicId()
+        if not isinstance(g_id, Node):
+            g_id = URIRef(g_id)
+
+        context = Graph(store=self.store, identifier=g_id)
+        context.remove((None, None, None))  # hmm ?
+        context.parse(source, publicID=publicID, format=format, **args)
+        # TODO: FIXME: This should not return context, but self.
+
+        for subject in self.subjects(unique=True):
+            if subject not in self.all_entities:
+                self.all_entities.add(subject)
+
+            if subject not in self.entity_index:
+                self.entity_index[subject] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': primary_source}
+
+        return context
 
 def _assertnode(*terms):
     for t in terms:

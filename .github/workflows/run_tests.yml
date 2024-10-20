@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright 2023 Arcangelo Massari <arcangelo.massari@unibo.it>
+# Copyright 2024 Arcangelo Massari <arcangelo.massari@unibo.it>
 #
 # Permission to use, copy, modify, and/or distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright notice
@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
     - uses: actions/checkout@v3.0.2
     - name: Set up Python ${{ matrix.python-version }}
@@ -39,11 +39,13 @@ jobs:
         pip3 install poetry
         sudo apt install -y python-is-python3
         poetry install
-    - name: Run Blazegraph
+        sudo apt install -y libncurses5
+    - name: Run Virtuoso
       run: |
-        wget https://github.com/blazegraph/database/releases/download/BLAZEGRAPH_2_1_6_RC/blazegraph.jar
-        java -server -jar blazegraph.jar &
-        python3 -c 'import time; time.sleep(10)'
+        cd virtuoso-opensource/bin
+        ./virtuoso-t
+        python3 -c 'import time; time.sleep(15)'
+        cd ../..
     - name: Check the overage
       run: |
         poetry run coverage run --rcfile=test/coverage/.coveragerc

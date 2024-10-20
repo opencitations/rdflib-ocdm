@@ -16,25 +16,20 @@
 
 from __future__ import annotations
 
-import json
 import os
 from datetime import datetime
 from typing import TYPE_CHECKING
-from zipfile import ZIP_DEFLATED, ZipFile
 
-from filelock import FileLock
 from oc_ocdm.support.reporter import Reporter
-from SPARQLWrapper import SPARQLWrapper
-
 from rdflib_ocdm.ocdm_graph import (OCDMConjunctiveGraph, OCDMGraph,
                                     OCDMGraphCommons)
 from rdflib_ocdm.query_utils import get_update_query
-from rdflib_ocdm.reader import Reader
+from SPARQLWrapper import SPARQLWrapper
 
 if TYPE_CHECKING:
-    from typing import Any, Dict, List, Optional, Set
+    from typing import Set
 
-    from rdflib import ConjunctiveGraph, Graph, URIRef
+    from rdflib import Graph
 
 
 class Storer(object):

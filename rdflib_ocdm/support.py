@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from rdflib import ConjunctiveGraph, Graph
+from rdflib import XSD, ConjunctiveGraph, Graph
 
 if TYPE_CHECKING:
     from rdflib import URIRef
@@ -57,7 +57,8 @@ def get_entity_subgraph(graph: Graph, entity: URIRef) -> Graph:
 
 def create_literal(g: Graph, res: URIRef, p: URIRef, s: str, dt: URIRef = None, nor: bool = True) -> None:
     if not is_string_empty(s):
-        g.add((res, p, Literal(s, datatype=dt, normalize=nor)))
+        datatype = dt if dt is not None else XSD.string
+        g.add((res, p, Literal(s, datatype=datatype, normalize=nor)))
 
 def create_type(g: ConjunctiveGraph|Graph, res: URIRef, res_type: URIRef, identifier: str = None) -> None:
     if isinstance(g, ConjunctiveGraph):

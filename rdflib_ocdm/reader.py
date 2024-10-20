@@ -18,10 +18,9 @@ from __future__ import annotations
 from typing import List, Union
 
 from oc_ocdm.support.reporter import Reporter
-from rdflib import ConjunctiveGraph, Graph, Literal, URIRef
-from SPARQLWrapper import JSON, POST, XML, SPARQLWrapper
-
+from rdflib import XSD, ConjunctiveGraph, Graph, Literal, URIRef
 from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
+from SPARQLWrapper import JSON, POST, XML, SPARQLWrapper
 
 
 class Reader(object):
@@ -58,7 +57,7 @@ class Reader(object):
             if result and 'results' in result and 'bindings' in result['results']:
                 temp_graph = ConjunctiveGraph()
                 for binding in result['results']['bindings']:
-                    graph_uri = URIRef(binding['g']['value'])
+                    graph_uri = Graph(identifier=URIRef(binding['g']['value']))
                     subject = URIRef(binding['s']['value'])
                     predicate = URIRef(binding['p']['value'])
                     
@@ -75,7 +74,7 @@ class Reader(object):
                         elif datatype:
                             obj = Literal(value, datatype=URIRef(datatype))
                         else:
-                            obj = Literal(value)
+                            obj = Literal(value, datatype=XSD.string)
 
                     temp_graph.add((subject, predicate, obj, graph_uri))
                 

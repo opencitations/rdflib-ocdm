@@ -15,33 +15,64 @@
 # SOFTWARE.
 
 import os
+import subprocess
 import unittest
 
-from rdflib import Literal, URIRef
-from SPARQLWrapper import JSON, POST, SPARQLWrapper
-
-from rdflib_ocdm.ocdm_graph import OCDMGraph
+from rdflib import Graph, Literal, URIRef
+from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
 from rdflib_ocdm.storer import Storer
+from SPARQLWrapper import JSON, POST, SPARQLWrapper
 
 
 class TestStorer(unittest.TestCase):
+    endpoint = 'http://127.0.0.1:8803/sparql'
+
+    def reset_server(self):
+        isql_command = [
+            'virtuoso-opensource/bin/isql',
+            '-U', 'dba',
+            '-P', 'dba',
+            '1103'
+        ]
+        
+        sql_command = 'RDF_GLOBAL_RESET ();'
+        
+        process = subprocess.Popen(
+            isql_command,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        
+        stdout, stderr = process.communicate(input=sql_command)
+        
+        if process.returncode != 0:
+            print(f"Errore nell'esecuzione di isql: {stderr}")
+        else:
+            print("RDF_GLOBAL_RESET eseguito con successo")
+            print("Output:", stdout)
+
     def setUp(self):
         self.subject = 'https://w3id.org/oc/meta/br/0605'
-        self.endpoint = 'http://localhost:9999/blazegraph/sparql'
         self.base_dir = 'test/'
         self.cur_time = 1607375859.846196
         self.ocdm_graph = OCDMGraph()
-        self.ocdm_graph.parse(os.path.join('test', 'br.nt'))
+        self.ocdm_graph.parse(os.path.join('test', 'br_small.nq'))
         self.storer = Storer(self.ocdm_graph)
+        self.reset_server()
         self.ts = SPARQLWrapper(self.endpoint)
-        self.ts.setQuery('DELETE {?x ?y ?z} WHERE {?x ?y ?z}')
         self.ts.setMethod(POST)
         self.ts.setReturnFormat(JSON)
         self.ts.query()
 
     def test_upload_all_graph(self):
         self.maxDiff = None
-        self.storer.upload_all(self.endpoint, self.base_dir)
+        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph.preexisting_finished()
+        ocdm_graph.parse(os.path.join('test', 'br_small.nq'))
+        storer = Storer(ocdm_graph)
+        storer.upload_all(self.endpoint, self.base_dir)
         query = '''
             SELECT ?s ?p ?o
             WHERE {
@@ -56,11 +87,11 @@ class TestStorer(unittest.TestCase):
             ('https://w3id.org/oc/meta/br/0636066666', 'http://purl.org/dc/terms/title', "Ironing Out Tau'S Role In Parkinsonism"), 
             ('https://w3id.org/oc/meta/br/0605', 'http://purl.org/dc/terms/title', 'A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy')}
         self.assertEqual(results, expected_results)
-        self.ocdm_graph.commit_changes()
-        self.ocdm_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy')))
-        self.ocdm_graph.add((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('Bella zì')))
-        self.ocdm_graph.generate_provenance(c_time=self.cur_time)
-        self.storer.upload_all(self.endpoint, self.base_dir)
+        ocdm_graph.commit_changes()
+        ocdm_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy'), Graph(identifier=URIRef('https://w3id.org/oc/meta/br/'))))
+        ocdm_graph.add((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('Bella zì'), Graph(identifier=URIRef('https://w3id.org/oc/meta/br/'))))
+        ocdm_graph.generate_provenance(c_time=self.cur_time)
+        storer.upload_all(self.endpoint, self.base_dir)
         query = '''
             SELECT ?s ?p ?o
             WHERE {
@@ -78,11 +109,13 @@ class TestStorer(unittest.TestCase):
 
     def test_upload_all_provenance(self):
         self.maxDiff = None
-        self.ocdm_graph.preexisting_finished(resp_agent='https://orcid.org/0000-0002-8420-0696', source='https://api.crossref.org/', c_time=self.cur_time)
-        self.ocdm_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy')))
-        self.ocdm_graph.add((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('Bella zì')))
-        self.ocdm_graph.generate_provenance(c_time=self.cur_time)
-        prov_storer = Storer(self.ocdm_graph.provenance)
+        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph.parse(os.path.join('test', 'br_small.nq'), resp_agent='https://orcid.org/0000-0002-8420-0696', primary_source='https://api.crossref.org/')
+        ocdm_graph.preexisting_finished(resp_agent='https://orcid.org/0000-0002-8420-0696', primary_source='https://api.crossref.org/', c_time=self.cur_time)
+        ocdm_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy'), Graph(identifier=URIRef('https://w3id.org/oc/meta/br/'))))
+        ocdm_graph.add((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('Bella zì'), Graph(identifier=URIRef('https://w3id.org/oc/meta/br/'))), resp_agent='https://orcid.org/0000-0002-8420-0696', primary_source='https://api.crossref.org/')
+        ocdm_graph.generate_provenance(c_time=self.cur_time)
+        prov_storer = Storer(ocdm_graph.provenance)
         prov_storer.upload_all(self.endpoint)
         query = '''
             PREFIX prov: <http://www.w3.org/ns/prov#> 
@@ -97,15 +130,16 @@ class TestStorer(unittest.TestCase):
         self.ts.setQuery(query)
         results = self.ts.queryAndConvert()
         results = {(result['g']['value'], result['s']['value'], result['p']['value'], result['o']['value']) for result in results['results']['bindings']}
+        print(results)
         expected_result = {
             ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/ns/prov#Entity'), 
-            ('https://w3id.org/oc/meta/br/0636066666/prov/', 'https://w3id.org/oc/meta/br/0636066666/prov/se/1', 'http://www.w3.org/ns/prov#generatedAtTime', '2020-12-07T21:17:34.000Z'), 
-            ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/1', 'http://www.w3.org/ns/prov#generatedAtTime', '2020-12-07T21:17:34.000Z'), 
-            ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/1', 'http://www.w3.org/ns/prov#invalidatedAtTime', '2020-12-07T21:17:39.000Z'), 
+            ('https://w3id.org/oc/meta/br/0636066666/prov/', 'https://w3id.org/oc/meta/br/0636066666/prov/se/1', 'http://www.w3.org/ns/prov#generatedAtTime', '2020-12-07T21:17:34Z'), 
+            ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/1', 'http://www.w3.org/ns/prov#generatedAtTime', '2020-12-07T21:17:34Z'), 
+            ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/1', 'http://www.w3.org/ns/prov#invalidatedAtTime', '2020-12-07T21:17:39Z'), 
             ('https://w3id.org/oc/meta/br/0636066666/prov/', 'https://w3id.org/oc/meta/br/0636066666/prov/se/1', 'http://www.w3.org/ns/prov#specializationOf', 'https://w3id.org/oc/meta/br/0636066666'), 
-            ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/2', 'https://w3id.org/oc/ontology/hasUpdateQuery', 'DELETE DATA { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy" . }; INSERT DATA { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "Bella zì" . }'), 
+            ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/2', 'https://w3id.org/oc/ontology/hasUpdateQuery', 'DELETE DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy" . } }; INSERT DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "Bella zì" . } }'), 
             ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/2', 'http://www.w3.org/ns/prov#hadPrimarySource', 'https://api.crossref.org/'), 
-            ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/2', 'http://www.w3.org/ns/prov#generatedAtTime', '2020-12-07T21:17:39.000Z'), 
+            ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/2', 'http://www.w3.org/ns/prov#generatedAtTime', '2020-12-07T21:17:39Z'), 
             ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/2', 'http://www.w3.org/ns/prov#specializationOf', 'https://w3id.org/oc/meta/br/0605'), 
             ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/2', 'http://purl.org/dc/terms/description', "The entity 'https://w3id.org/oc/meta/br/0605' was modified."), 
             ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/2', 'http://www.w3.org/ns/prov#wasAttributedTo', 'https://orcid.org/0000-0002-8420-0696'), 
