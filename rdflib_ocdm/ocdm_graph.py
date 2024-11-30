@@ -139,7 +139,7 @@ class OCDMGraph(OCDMGraphCommons, Graph):
             self.all_entities.add(s)
         
         if s not in self.entity_index:
-            self.entity_index[s] = {'to_be_deleted': False, 'is_restored': True, 'resp_agent': resp_agent, 'source': primary_source}
+            self.entity_index[s] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source}
         
         return self
 
@@ -283,7 +283,7 @@ class OCDMGraph(OCDMGraphCommons, Graph):
                 self.all_entities.add(subject)
 
             if subject not in self.entity_index:
-                self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': True, 'resp_agent': resp_agent, 'source': primary_source}
+                self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source}
 
         return self
 
@@ -320,7 +320,7 @@ class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
             self.all_entities.add(s)
 
         if s not in self.entity_index:
-            self.entity_index[s] = {'to_be_deleted': False, 'is_restored': True, 'resp_agent': resp_agent, 'source': primary_source}
+            self.entity_index[s] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source}
 
         return self
 
@@ -393,7 +393,7 @@ class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
                 self.all_entities.add(subject)
 
             if subject not in self.entity_index:
-                self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': True, 'resp_agent': resp_agent, 'source': primary_source}
+                self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source}
 
         return context
 
