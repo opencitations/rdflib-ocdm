@@ -13,7 +13,7 @@ rdflib = "^6.2.0"
 oc-ocdm = "^9.1.1"
 sparqlwrapper = "^2.0.0"
 redis = "^4.5.5"
-time-agnostic-library = "^4.6.5"
+time-agnostic-library = "^4.6.10"
 
 
 [tool.poetry.group.dev.dependencies]
