@@ -67,6 +67,18 @@ class OCDMProvenance(ConjunctiveGraph):
                 cur_snapshot.has_invalidation_time(cur_time)
                 cur_snapshot.has_description(f"The entity '{str(cur_subj)}' has been deleted.")
                 cur_snapshot.has_update_action(update_query)
+            elif cur_subj_metadata['is_restored']:
+                # RESTORATION SNAPSHOT
+                last_snapshot: SnapshotEntity = self.add_se(prov_subject=cur_subj, res=last_snapshot_res)
+                # Non settiamo l'invalidation time per il precedente snapshot in caso di restore
+                
+                cur_snapshot: SnapshotEntity = self._create_snapshot(cur_subj, cur_time)
+                cur_snapshot.derives_from(last_snapshot)
+                cur_snapshot.has_description(f"The entity '{str(cur_subj)}' has been restored.")
+                
+                update_query: str = get_update_query(self.prov_g, cur_subj)[0]
+                if update_query:
+                    cur_snapshot.has_update_action(update_query)   
             else:
                 if last_snapshot_res is None:
                     # CREATION SNAPSHOT

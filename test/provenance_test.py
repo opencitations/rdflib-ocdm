@@ -46,7 +46,6 @@ class TestOCDMProvenance(unittest.TestCase):
         result = ocdm_graph.generate_provenance(c_time=self.cur_time)
         self.assertIsNone(result)
         se_a: SnapshotEntity = ocdm_graph.get_entity(f'{self.subject}/prov/se/1')
-        print(ocdm_graph.get_entity(f'{self.subject}/prov/se/1'))
         self.assertIsNotNone(se_a)
         self.assertIsInstance(se_a, SnapshotEntity)
         self.assertEqual(URIRef(self.subject), se_a.get_is_snapshot_of())
@@ -123,6 +122,46 @@ class TestOCDMProvenance(unittest.TestCase):
         self.assertEqual(se_id_0636064270_1.get_description(), "The entity 'https://w3id.org/oc/meta/id/0636064270' has been created.")
         self.assertEqual(se_id_0636064270_2.get_description(), "The entity 'https://w3id.org/oc/meta/id/0636064270' has been deleted.")
         self.assertEqual(se_id_0636064270_2.get_update_action(), "DELETE DATA { GRAPH <https://w3id.org/oc/meta/id/> { <https://w3id.org/oc/meta/id/0636064270> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/spar/datacite/Identifier> . } }")
+
+    def test_restore_deleted_entity(self):
+        # Setup grafo e entità iniziale
+        ocdm_graph = OCDMGraph()
+        subject_uri = URIRef(self.subject)
+        ocdm_graph.add((subject_uri, URIRef('http://purl.org/dc/terms/title'), Literal('Test Title')))
+        ocdm_graph.preexisting_finished(c_time=self.cur_time)
+        
+        # Prima otteniamo lo snapshot di creazione
+        initial_snapshot: SnapshotEntity = ocdm_graph.get_entity(f'{self.subject}/prov/se/1')
+        self.assertIsNotNone(initial_snapshot)
+        self.assertEqual(initial_snapshot.get_description(), f"The entity '{self.subject}' has been created.")
+        
+        # Cancelliamo l'entità e generiamo la provenance
+        ocdm_graph.mark_as_deleted(subject_uri)
+        deletion_time = '2020-12-08T21:17:34+00:00'
+        ocdm_graph.generate_provenance(c_time=1607462254.846196)
+        
+        # Verifichiamo lo snapshot di cancellazione
+        deletion_snapshot: SnapshotEntity = ocdm_graph.get_entity(f'{self.subject}/prov/se/2')
+        self.assertEqual(deletion_snapshot.get_generation_time(), deletion_time)
+        self.assertEqual(deletion_snapshot.get_invalidation_time(), deletion_time)
+        self.assertEqual(deletion_snapshot.get_description(), f"The entity '{self.subject}' has been deleted.")
+        
+        # Ripristiniamo l'entità e aggiungiamo una modifica
+        ocdm_graph.mark_as_restored(subject_uri)
+        ocdm_graph.add((subject_uri, URIRef('http://purl.org/dc/terms/title'), Literal('Restored Title')))
+        
+        # Generiamo la provenance dopo il ripristino
+        restore_time = '2020-12-09T21:17:34+00:00'
+        ocdm_graph.generate_provenance(c_time=1607548654.846196)
+        
+        # Verifichiamo lo snapshot di ripristino
+        restore_snapshot = ocdm_graph.get_entity(f'{self.subject}/prov/se/3')
+        self.assertIsNotNone(restore_snapshot)
+        self.assertEqual(restore_snapshot.get_generation_time(), restore_time)
+        self.assertIsNone(restore_snapshot.get_invalidation_time())
+        self.assertEqual(restore_snapshot.get_description(), f"The entity '{self.subject}' has been restored.")
+        self.assertEqual(restore_snapshot.get_derives_from()[0].res, deletion_snapshot.res)
+        self.assertIsNotNone(restore_snapshot.get_update_action())
 
 if __name__ == '__main__':
     unittest.main()

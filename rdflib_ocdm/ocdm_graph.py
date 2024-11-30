@@ -53,7 +53,7 @@ class OCDMGraphCommons():
     def preexisting_finished(self: Graph|ConjunctiveGraph|OCDMGraphCommons, resp_agent: str = None, primary_source: str = None, c_time: str = None):
         self.preexisting_graph = deepcopy(self)
         for subject in self.subjects(unique=True):
-            self.entity_index[subject] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': primary_source}
+            self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source}
             self.all_entities.add(subject)
             count = self.provenance.counter_handler.read_counter(subject)
             if count == 0:
@@ -79,6 +79,21 @@ class OCDMGraphCommons():
     def mark_as_deleted(self, res: URIRef) -> None:
         self.entity_index[res]['to_be_deleted'] = True
 
+    def mark_as_restored(self, res: URIRef) -> None:
+        """
+        Marks an entity as being restored after deletion.
+        This will:
+        1. Set is_restored flag to True in the entity_index
+        2. Set to_be_deleted flag to False
+        
+        :param res: The URI reference of the entity to restore
+        :type res: URIRef
+        :return: None
+        """
+        if res in self.entity_index:
+            self.entity_index[res]['is_restored'] = True
+            self.entity_index[res]['to_be_deleted'] = False
+
     @property
     def merge_index(self) -> dict:
         return self.__merge_index
@@ -90,7 +105,7 @@ class OCDMGraphCommons():
     def generate_provenance(self, c_time: float = None) -> None:
         return self.provenance.generate_provenance(c_time)
     
-    def get_entity(self, res: str) -> Optional[ProvEntity]:
+    def get_entity(self, res: str) -> Optional[SnapshotEntity]:
         return self.provenance.get_entity(res)
     
     def commit_changes(self):
@@ -124,7 +139,7 @@ class OCDMGraph(OCDMGraphCommons, Graph):
             self.all_entities.add(s)
         
         if s not in self.entity_index:
-            self.entity_index[s] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': primary_source}
+            self.entity_index[s] = {'to_be_deleted': False, 'is_restored': True, 'resp_agent': resp_agent, 'source': primary_source}
         
         return self
 
@@ -268,7 +283,7 @@ class OCDMGraph(OCDMGraphCommons, Graph):
                 self.all_entities.add(subject)
 
             if subject not in self.entity_index:
-                self.entity_index[subject] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': primary_source}
+                self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': True, 'resp_agent': resp_agent, 'source': primary_source}
 
         return self
 
@@ -305,7 +320,7 @@ class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
             self.all_entities.add(s)
 
         if s not in self.entity_index:
-            self.entity_index[s] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': primary_source}
+            self.entity_index[s] = {'to_be_deleted': False, 'is_restored': True, 'resp_agent': resp_agent, 'source': primary_source}
 
         return self
 
@@ -378,7 +393,7 @@ class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
                 self.all_entities.add(subject)
 
             if subject not in self.entity_index:
-                self.entity_index[subject] = {'to_be_deleted': False, 'resp_agent': resp_agent, 'source': primary_source}
+                self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': True, 'resp_agent': resp_agent, 'source': primary_source}
 
         return context
 
