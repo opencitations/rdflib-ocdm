@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rdflib-ocdm"
-version = "0.4.1"
+version = "1.0.0"
 description = ""
 authors = ["arcangelo7 <arcangelomas@gmail.com>"]
 license = "ISC"
