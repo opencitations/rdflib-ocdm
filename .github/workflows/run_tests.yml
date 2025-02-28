@@ -94,6 +94,7 @@ jobs:
         echo "BADGE_COLOR=$COLOR" >> $GITHUB_ENV
         
         # Also generate the SVG badge for the repo
+        rm -f test/coverage/coverage.svg  # Remove existing file first
         poetry run coverage-badge -o test/coverage/coverage.svg
       
     - name: Create badge

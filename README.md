@@ -1,5 +1,6 @@
 [<img src="https://img.shields.io/badge/powered%20by-OpenCitations-%239931FC?labelColor=2D22DE" />](http://opencitations.net)
 [![Run tests](https://github.com/opencitations/rdflib-ocdm/actions/workflows/run_tests.yml/badge.svg)](https://github.com/opencitations/rdflib-ocdm/actions/workflows/run_tests.yml)
+![Coverage](https://byob.yarr.is/arcangelo7/badges/opencitations-rdflib-ocdm-coverage-main)
 ![PyPI](https://img.shields.io/pypi/pyversions/rdflib-ocdm)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/opencitations/rdflib-ocdm)
 
@@ -104,7 +105,61 @@ g.generate_provenance()
 
 # Get the provenance graphs that contain the delta information
 prov_graphs = g.get_provenance_graphs()
+
+## Running Tests
+
+The project includes a comprehensive test suite to ensure functionality and maintain code quality. To run the tests locally:
+
+### Prerequisites
+
+- [Poetry](https://python-poetry.org/) for dependency management
+- Docker for running test databases (used by some tests)
+
+### Setup
+
+1. Clone the repository and install dependencies:
+   ```bash
+   git clone https://github.com/opencitations/rdflib-ocdm.git
+   cd rdflib-ocdm
+   poetry install --with dev
+   ```
+
+2. Start the test databases (if needed):
+   ```bash
+   # On Linux/macOS
+   ./test/start-test-databases.sh
+   
+   # On Windows
+   .\test\start-test-databases.ps1
+   ```
+
+### Running Tests
+
+Run the tests with coverage:
+```bash
+poetry run python -m coverage run --rcfile=test/coverage/.coveragerc
 ```
+
+Generate and view the coverage report:
+```bash
+poetry run coverage report  # Console output
+poetry run coverage html    # HTML report (available in htmlcov/ directory)
+```
+
+### Cleanup
+
+After running tests, stop the test databases:
+```bash
+# On Linux/macOS
+./test/stop-test-databases.sh
+
+# On Windows
+.\test\stop-test-databases.ps1
+```
+
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to this project, including commit message conventions and how to trigger different types of releases.
 
 ## References
 
