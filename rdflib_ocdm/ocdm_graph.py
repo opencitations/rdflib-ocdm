@@ -16,20 +16,24 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import rdflib
 import rdflib.plugin as plugin
 from rdflib.exceptions import ParserError
 from rdflib.parser import InputSource, Parser, create_input_source
 
-_SubjectType = Node
-_PredicateType = Node
-_ObjectType = Node
-_TripleType = Tuple["_SubjectType", "_PredicateType", "_ObjectType"]
+if TYPE_CHECKING:
+    _SubjectType = Node
+    _PredicateType = Node
+    _ObjectType = Node
+    _TripleType = Tuple["_SubjectType", "_PredicateType", "_ObjectType"]
+    from typing import (IO, TYPE_CHECKING, Any, BinaryIO, List, Optional, TextIO,
+                        Union, List, Tuple)
+
 import pathlib
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
-from typing import (IO, TYPE_CHECKING, Any, BinaryIO, List, Optional, TextIO,
-                    Tuple, Union)
 
 from rdflib import ConjunctiveGraph, Graph, URIRef
 from rdflib.term import Node

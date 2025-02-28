@@ -19,11 +19,14 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import ClassVar, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING
 
 from rdflib import RDF, RDFS, Graph, Literal, URIRef
+
 from rdflib_ocdm.support import create_literal, create_type
 
+if TYPE_CHECKING:
+    from typing import ClassVar, Dict, Iterable, List, Optional
 
 class AbstractEntity(ABC):
     """

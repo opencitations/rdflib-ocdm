@@ -16,15 +16,20 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from rdflib_ocdm.ocdm_graph import OCDMGraphCommons
+    from typing import List, Dict, Optional
+
 from collections import OrderedDict
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
 
 from rdflib import ConjunctiveGraph, URIRef
+
 from rdflib_ocdm.counter_handler.counter_handler import CounterHandler
 from rdflib_ocdm.counter_handler.in_memory_counter_handler import \
     InMemoryCounterHandler
-from rdflib_ocdm.ocdm_graph import OCDMGraphCommons
 from rdflib_ocdm.prov.prov_entity import ProvEntity
 from rdflib_ocdm.prov.snapshot_entity import SnapshotEntity
 from rdflib_ocdm.query_utils import get_update_query
