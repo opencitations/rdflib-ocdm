@@ -16,16 +16,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing import Tuple
-    from rdflib.compare import IsomorphicGraph
-    from rdflib_ocdm.ocdm_graph import OCDMGraphCommons
+from typing import Tuple
 
 from rdflib import ConjunctiveGraph, Graph, URIRef
-from rdflib.compare import graph_diff, to_isomorphic
-
+from rdflib.compare import IsomorphicGraph, graph_diff, to_isomorphic
+from rdflib_ocdm.ocdm_graph import OCDMGraphCommons
 from rdflib_ocdm.support import get_entity_subgraph
 
 

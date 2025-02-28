@@ -16,17 +16,11 @@
 # SOFTWARE.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import ClassVar, Dict
 
 from rdflib import Namespace, URIRef
-
-if TYPE_CHECKING:
-    from rdflib_ocdm.prov.provenance import OCDMProvenance
-
 from rdflib_ocdm.abstract_entity import AbstractEntity
-
-if TYPE_CHECKING:
-    from typing import ClassVar, Dict
+from rdflib_ocdm.prov.provenance import OCDMProvenance
 
 
 class ProvEntity(AbstractEntity):

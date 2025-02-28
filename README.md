@@ -2,6 +2,7 @@
 [![Run tests](https://github.com/opencitations/rdflib-ocdm/actions/workflows/run_tests.yml/badge.svg)](https://github.com/opencitations/rdflib-ocdm/actions/workflows/run_tests.yml)
 ![Coverage](https://byob.yarr.is/arcangelo7/badges/opencitations-rdflib-ocdm-coverage-main)
 ![PyPI](https://img.shields.io/pypi/pyversions/rdflib-ocdm)
+[![PyPI version](https://badge.fury.io/py/rdflib-ocdm.svg)](https://badge.fury.io/py/rdflib-ocdm)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/opencitations/rdflib-ocdm)
 
 # rdflib-ocdm

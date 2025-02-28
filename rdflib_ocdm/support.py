@@ -16,17 +16,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from rdflib import XSD, ConjunctiveGraph, Graph
-
-if TYPE_CHECKING:
-    from rdflib import URIRef
-    from typing import Match
-
 import re
+from typing import Match
 
-from rdflib import RDF, Literal
+from rdflib import RDF, XSD, ConjunctiveGraph, Graph, Literal, URIRef
 
 prov_regex: str = r"^(.+)/prov/([a-z][a-z])/([1-9][0-9]*)$"
 

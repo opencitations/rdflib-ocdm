@@ -17,22 +17,16 @@
 from __future__ import annotations
 
 import os
-import random
-import time
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import Set
 
 from oc_ocdm.support.reporter import Reporter
+from rdflib import Graph
 from rdflib_ocdm.ocdm_graph import (OCDMConjunctiveGraph, OCDMGraph,
                                     OCDMGraphCommons)
 from rdflib_ocdm.query_utils import get_update_query
 from rdflib_ocdm.retry_utils import execute_with_retry
 from SPARQLWrapper import SPARQLWrapper
-
-if TYPE_CHECKING:
-    from typing import Set
-
-    from rdflib import Graph
 
 
 class Storer(object):
