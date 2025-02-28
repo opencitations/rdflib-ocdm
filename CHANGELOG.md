@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.0...v1.0.1) (2025-02-28)
+
+
+### Bug Fixes
+
+* add compatibility with Time Agnostic Library 4.6.14 ([98f1cc8](https://github.com/opencitations/rdflib-ocdm/commit/98f1cc8340c9863c1247f0b76238bf260f8c8d93))
+
 # 1.0.0 (2025-02-28)
 
 
