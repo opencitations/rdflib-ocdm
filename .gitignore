@@ -3,11 +3,12 @@ test/info_dir
 test/database.db
 test/blazegraph.*
 blazegraph.*
+test/dataset_db/*
+test/prov_db/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*$py.class
 
 # C extensions
 *.so

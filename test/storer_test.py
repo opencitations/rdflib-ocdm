@@ -15,7 +15,9 @@
 # SOFTWARE.
 
 import os
+import random
 import subprocess
+import time
 import unittest
 
 from rdflib import Graph, Literal, URIRef
@@ -25,33 +27,31 @@ from SPARQLWrapper import JSON, POST, SPARQLWrapper
 
 
 class TestStorer(unittest.TestCase):
-    endpoint = 'http://127.0.0.1:8803/sparql'
+    endpoint = 'http://localhost:8890/sparql'
 
     def reset_server(self):
-        isql_command = [
-            'virtuoso-opensource/bin/isql',
-            '-U', 'dba',
-            '-P', 'dba',
-            '1103'
-        ]
-        
-        sql_command = 'RDF_GLOBAL_RESET ();'
-        
-        process = subprocess.Popen(
-            isql_command,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        
-        stdout, stderr = process.communicate(input=sql_command)
-        
-        if process.returncode != 0:
-            print(f"Errore nell'esecuzione di isql: {stderr}")
-        else:
-            print("RDF_GLOBAL_RESET eseguito con successo")
-            print("Output:", stdout)
+        try:
+            # Use Docker exec to run ISQL commands on the dataset container
+            reset_command = [
+                'docker', 'exec', 'rdflib_ocdm_dataset_db',
+                '/opt/virtuoso-opensource/bin/isql',
+                '-U', 'dba',
+                '-P', 'dba',
+                'exec=RDF_GLOBAL_RESET();'
+            ]
+            
+            process = subprocess.run(
+                reset_command,
+                capture_output=True,
+                text=True
+            )
+            
+            if process.returncode != 0:
+                print(f"Error executing RDF_GLOBAL_RESET: {process.stderr}")
+            else:
+                print("RDF_GLOBAL_RESET executed successfully")
+        except Exception as e:
+            print(f"Error resetting database: {e}")
 
     def setUp(self):
         self.subject = 'https://w3id.org/oc/meta/br/0605'
@@ -64,7 +64,24 @@ class TestStorer(unittest.TestCase):
         self.ts = SPARQLWrapper(self.endpoint)
         self.ts.setMethod(POST)
         self.ts.setReturnFormat(JSON)
-        self.ts.query()
+        
+        # Add retry logic for the initial query
+        max_retries = 5
+        retry_count = 0
+        base_wait_time = 1
+        
+        while retry_count <= max_retries:
+            try:
+                self.ts.query()
+                break
+            except Exception as e:
+                retry_count += 1
+                if retry_count <= max_retries:
+                    wait_time = (base_wait_time * (2 ** (retry_count - 1))) + (random.random() * 0.5)
+                    print(f"Query attempt {retry_count}/{max_retries} failed: {e}. Retrying in {wait_time:.2f} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    raise Exception(f"Failed to connect to triplestore after {max_retries} attempts: {e}")
 
     def test_upload_all_graph(self):
         self.maxDiff = None

@@ -15,11 +15,14 @@
 # SOFTWARE.
 from __future__ import annotations
 
+import random
+import time
 from typing import List, Union
 
 from oc_ocdm.support.reporter import Reporter
 from rdflib import XSD, ConjunctiveGraph, Graph, Literal, URIRef
 from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
+from rdflib_ocdm.retry_utils import execute_with_retry
 from SPARQLWrapper import JSON, POST, XML, SPARQLWrapper
 
 
@@ -36,7 +39,7 @@ class Reader(object):
             self.reperr: Reporter = reperr
 
     @staticmethod
-    def import_entities_from_triplestore(ocdm_graph: Union[OCDMGraph, OCDMConjunctiveGraph], ts_url: str, res_list: List[URIRef]) -> None:
+    def import_entities_from_triplestore(ocdm_graph: Union[OCDMGraph, OCDMConjunctiveGraph], ts_url: str, res_list: List[URIRef], max_retries: int = 5) -> None:
         sparql: SPARQLWrapper = SPARQLWrapper(ts_url)
         
         if isinstance(ocdm_graph, OCDMConjunctiveGraph):
@@ -52,7 +55,12 @@ class Reader(object):
             sparql.setQuery(query)
             sparql.setMethod(POST)
             sparql.setReturnFormat(JSON)
-            result = sparql.queryAndConvert()
+            
+            # Use the retry utility function instead of duplicating retry logic
+            result = execute_with_retry(
+                sparql.queryAndConvert,
+                max_retries=max_retries
+            )
             
             if result and 'results' in result and 'bindings' in result['results']:
                 temp_graph = ConjunctiveGraph()
@@ -96,7 +104,12 @@ class Reader(object):
             sparql.setQuery(query)
             sparql.setMethod(POST)
             sparql.setReturnFormat(XML)
-            result: Graph = sparql.queryAndConvert()
+            
+            # Use the retry utility function instead of duplicating retry logic
+            result: Graph = execute_with_retry(
+                sparql.queryAndConvert,
+                max_retries=max_retries
+            )
             
             if result is not None and len(result) > 0:
                 for triple in result:

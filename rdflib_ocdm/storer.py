@@ -17,6 +17,8 @@
 from __future__ import annotations
 
 import os
+import random
+import time
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -24,6 +26,7 @@ from oc_ocdm.support.reporter import Reporter
 from rdflib_ocdm.ocdm_graph import (OCDMConjunctiveGraph, OCDMGraph,
                                     OCDMGraphCommons)
 from rdflib_ocdm.query_utils import get_update_query
+from rdflib_ocdm.retry_utils import execute_with_retry
 from SPARQLWrapper import SPARQLWrapper
 
 if TYPE_CHECKING:
@@ -55,24 +58,31 @@ class Storer(object):
             self.reperr: Reporter = reperr
 
     def _query(self, query_string: str, triplestore_url: str, base_dir: str = None,
-               added_statements: int = 0, removed_statements: int = 0) -> bool:
+               added_statements: int = 0, removed_statements: int = 0, max_retries: int = 5) -> bool:
         if query_string != "":
             try:
-                sparql: SPARQLWrapper = SPARQLWrapper(triplestore_url)
-                sparql.setQuery(query_string)
-                sparql.setMethod('POST')
-
-                sparql.query()
-
+                # Use the retry utility function with custom error handling
+                def execute_query():
+                    sparql: SPARQLWrapper = SPARQLWrapper(triplestore_url)
+                    sparql.setQuery(query_string)
+                    sparql.setMethod('POST')
+                    sparql.query()
+                    return True
+                
+                execute_with_retry(
+                    execute_query,
+                    max_retries=max_retries,
+                    reporter=self.repok
+                )
+                
                 self.repok.add_sentence(
                     f"Triplestore updated with {added_statements} added statements and "
                     f"with {removed_statements} removed statements.")
-
+                
                 return True
-            except Exception as e:
-                self.reperr.add_sentence("[3] "
-                                         "Graph was not loaded into the "
-                                         f"triplestore due to communication problems: {e}")
+            except ValueError as e:
+                # Handle the case when all retries failed
+                self.reperr.add_sentence(f"[3] Graph was not loaded into the triplestore due to communication problems: {e}")
                 if base_dir is not None:
                     tp_err_dir: str = base_dir + os.sep + "tp_err"
                     if not os.path.exists(tp_err_dir):
@@ -81,6 +91,7 @@ class Storer(object):
                         datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f_not_uploaded.txt')
                     with open(cur_file_err, 'wt', encoding='utf-8') as f:
                         f.write(query_string)
+                return False
         return False
     
     def upload_all(self, triplestore_url: str, base_dir: str = None, batch_size: int = 10) -> bool:

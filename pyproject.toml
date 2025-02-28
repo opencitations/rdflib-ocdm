@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{include = "rdflib_ocdm"}]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.14"
+python = ">=3.9,<3.14"
 rdflib = "^6.2.0"
 oc-ocdm = "^9.1.1"
 sparqlwrapper = "^2.0.0"
@@ -19,6 +19,7 @@ time-agnostic-library = "^4.6.10"
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.2.3"
 coverage-badge = "^1.1.0"
+isort = "^6.0.1"
 
 [build-system]
 requires = ["poetry-core"]
