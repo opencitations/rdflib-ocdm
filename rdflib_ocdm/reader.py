@@ -82,7 +82,7 @@ class Reader(object):
                         elif datatype:
                             obj = Literal(value, datatype=URIRef(datatype))
                         else:
-                            obj = Literal(value, datatype=XSD.string)
+                            obj = Literal(value)
 
                     temp_graph.add((subject, predicate, obj, graph_uri))
                 

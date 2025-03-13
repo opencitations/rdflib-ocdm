@@ -28,7 +28,7 @@ from rdflib_ocdm.support import create_literal, create_type
 if TYPE_CHECKING:
     from typing import ClassVar, Dict, Iterable, List, Optional
 
-class AbstractEntity(ABC):
+class AbstractEntity(ABC): # pragma: no cover
     """
     Abstract class which represents a generic entity. 
     It sits at the top of the entity class hierarchy.
