@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.2...v1.0.3) (2025-05-29)
+
+
+### Bug Fixes
+
+* [release] ([cba8dbb](https://github.com/opencitations/rdflib-ocdm/commit/cba8dbb7d83d66c9abdef33dd57ebf24fcd07212))
+
 ## [1.0.2](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.1...v1.0.2) (2025-03-13)
 
 
