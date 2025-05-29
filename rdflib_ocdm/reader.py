@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright 2023 Arcangelo Massari <arcangelo.massari@unibo.it>
+# Copyright 2023-2025 Arcangelo Massari <arcangelo.massari@unibo.it>
 #
 # Permission to use, copy, modify, and/or distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright notice
@@ -15,12 +15,10 @@
 # SOFTWARE.
 from __future__ import annotations
 
-import random
-import time
 from typing import List, Union
 
 from oc_ocdm.support.reporter import Reporter
-from rdflib import XSD, ConjunctiveGraph, Graph, Literal, URIRef
+from rdflib import ConjunctiveGraph, Graph, Literal, URIRef
 from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
 from rdflib_ocdm.retry_utils import execute_with_retry
 from SPARQLWrapper import JSON, POST, XML, SPARQLWrapper

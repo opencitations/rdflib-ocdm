@@ -42,7 +42,7 @@ class RedisCounterHandler:
         entity_name = str(entity_name)
         result = self.connection.get(entity_name)
         if result:
-            return result
+            return int(result.decode('utf-8'))
         else:
             return 0
         

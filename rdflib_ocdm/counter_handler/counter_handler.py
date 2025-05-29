@@ -16,7 +16,7 @@
 from abc import ABC, abstractmethod
 
 
-class CounterHandler(ABC):
+class CounterHandler(ABC): # pragma: no cover
     """Abstract class representing the interface for every concrete counter handler."""
 
     @abstractmethod

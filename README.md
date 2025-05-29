@@ -158,6 +158,11 @@ After running tests, stop the test databases:
 .\test\stop-test-databases.ps1
 ```
 
+Note: On Linux/macOS, you may need to make the test scripts executable before running them. Use the following command:
+```bash
+chmod +x test/start-test-databases.sh test/stop-test-databases.sh
+```
+
 ## Contributing
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to this project, including commit message conventions and how to trigger different types of releases.

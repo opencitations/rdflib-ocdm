@@ -1,3 +1,26 @@
-# .coveragerc to control coverage.py
 [run]
-command_line = -m unittest discover -s test -p *_test.py
+source = rdflib_ocdm
+branch = True
+command_line = -m unittest discover -s test -p "*_test.py"
+omit = 
+    */test/*
+    */tests/*
+    */__pycache__/*
+    */setup.py
+    */conftest.py
+    *test_*.py
+    test_*.py
+    test/*
+    tests/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    raise ImportError
+    if __name__ == .__main__.
+    pass
+
+[html]
+directory = coverage_html_report
