@@ -138,7 +138,7 @@ The project includes a comprehensive test suite to ensure functionality and main
 
 Run the tests with coverage:
 ```bash
-poetry run python -m coverage run --rcfile=test/coverage/.coveragerc
+poetry run python -m coverage run --rcfile=test/coverage/.coveragerc 
 ```
 
 Generate and view the coverage report:
