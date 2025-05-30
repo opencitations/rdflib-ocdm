@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.3...v1.0.4) (2025-05-30)
+
+
+### Bug Fixes
+
+* **deps:** update dependencies and improve database management scripts ([e67b7e0](https://github.com/opencitations/rdflib-ocdm/commit/e67b7e015e4da360b65550a3a905d8e85e1acd0d))
+
 ## [1.0.3](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.2...v1.0.3) (2025-05-29)
 
 
