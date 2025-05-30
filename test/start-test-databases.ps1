@@ -1,3 +1,8 @@
+# Stop and remove existing containers if they exist
+Write-Host "Cleaning up existing containers and volumes..."
+docker stop rdflib_ocdm_dataset_db rdflib_ocdm_provenance_db 2>$null
+docker rm rdflib_ocdm_dataset_db rdflib_ocdm_provenance_db 2>$null
+
 # Create network if it doesn't exist
 docker network create virtuoso-net 2>$null
 

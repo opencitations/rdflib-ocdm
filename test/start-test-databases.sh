@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Stop and remove existing containers if they exist
+echo "Cleaning up existing containers and volumes..."
+docker stop rdflib_ocdm_dataset_db rdflib_ocdm_provenance_db 2>/dev/null || true
+docker rm rdflib_ocdm_dataset_db rdflib_ocdm_provenance_db 2>/dev/null || true
+
 # Create network if it doesn't exist
 docker network create virtuoso-net 2>/dev/null || true
 

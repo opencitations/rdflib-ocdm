@@ -9,10 +9,10 @@ packages = [{include = "rdflib_ocdm"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.14"
-rdflib = "^6.2.0"
-oc-ocdm = "^9.1.1"
+oc-ocdm = "^9.2.2"
 sparqlwrapper = "^2.0.0"
 redis = "^4.5.5"
+rdflib = "^7.1.4"
 
 
 [tool.poetry.group.dev.dependencies]
