@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.4...v1.0.5) (2025-10-29)
+
+
+### Bug Fixes
+
+* remove extra space [release] ([6b0ea31](https://github.com/opencitations/rdflib-ocdm/commit/6b0ea31a5e1beed3c13022ba35d30fddf1c9dfec))
+
 ## [1.0.4](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.3...v1.0.4) (2025-05-30)
 
 
