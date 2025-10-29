@@ -15,7 +15,7 @@
 # SOFTWARE.
 
 
-name: Run tests
+name: Run tests 
 on:
   push:
     branches:
