@@ -85,3 +85,47 @@ class SqliteCounterHandler(CounterHandler):
         count = cur_count + 1
         self.set_counter(count, entity_name)
         return count
+
+    def close(self) -> None:
+        """
+        Closes the database connection.
+
+        :return: None
+        """
+        try:
+            if hasattr(self, 'cur') and self.cur:
+                self.cur.close()
+        except (sqlite3.ProgrammingError, Exception):
+            pass
+        try:
+            if hasattr(self, 'con') and self.con:
+                self.con.close()
+        except (sqlite3.ProgrammingError, Exception):
+            pass
+
+    def __del__(self) -> None:
+        """
+        Destructor that ensures the database connection is closed.
+
+        :return: None
+        """
+        self.close()
+
+    def __enter__(self):
+        """
+        Context manager entry point.
+
+        :return: self
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # noqa: ARG002
+        """
+        Context manager exit point that ensures the database connection is closed.
+
+        :param exc_type: Exception type
+        :param exc_val: Exception value
+        :param exc_tb: Exception traceback
+        :return: None
+        """
+        self.close()

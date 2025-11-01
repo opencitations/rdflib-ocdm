@@ -35,6 +35,15 @@ class TestOCDMProvenance(unittest.TestCase):
         self.cur_time = 1607375859.846196
         self.cur_time_str = '2020-12-07T21:17:34+00:00'
 
+    def tearDown(self):
+        # Clean up database file if it exists
+        db_path = os.path.join('test', 'database.db')
+        if os.path.exists(db_path):
+            try:
+                os.unlink(db_path)
+            except Exception:
+                pass
+
     def test_add_se(self):
         ocdm_graph = OCDMGraph()
         ocdm_prov_memory = OCDMProvenance(ocdm_graph)
@@ -88,19 +97,22 @@ class TestOCDMProvenance(unittest.TestCase):
 
     def test_generate_provenance_modification_ocdm_conjunctive_graph_database_counter(self):
         counter_handler = SqliteCounterHandler(os.path.join('test', 'database.db'))
-        ocdm_conjunctive_graph = OCDMDataset(counter_handler=counter_handler)
-        ocdm_conjunctive_graph.parse(os.path.join('test', 'br.nq'))
-        ocdm_conjunctive_graph.provenance.counter_handler.set_counter(1, self.subject)
-        ocdm_conjunctive_graph.preexisting_finished()
-        ocdm_conjunctive_graph.provenance.counter_handler.set_counter(1, self.subject)
-        ocdm_conjunctive_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy')))
-        ocdm_conjunctive_graph.add((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('Bella zì')))
-        ocdm_conjunctive_graph.generate_provenance()
-        se_a_2: SnapshotEntity = ocdm_conjunctive_graph.get_entity(f'{self.subject}/prov/se/2')
-        self.assertEqual(se_a_2.get_description(), f"The entity '{self.subject}' was modified.")
-        self.assertEqual(se_a_2.get_is_snapshot_of(), URIRef(self.subject))
-        self.assertEqual(se_a_2.get_derives_from()[0].res, URIRef('https://w3id.org/oc/meta/br/0605/prov/se/1'))
-        self.assertEqual(se_a_2.get_update_action(), 'DELETE DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy" . } }; INSERT DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "Bella zì" . } }')
+        try:
+            ocdm_conjunctive_graph = OCDMDataset(counter_handler=counter_handler)
+            ocdm_conjunctive_graph.parse(os.path.join('test', 'br.nq'))
+            ocdm_conjunctive_graph.provenance.counter_handler.set_counter(1, self.subject)
+            ocdm_conjunctive_graph.preexisting_finished()
+            ocdm_conjunctive_graph.provenance.counter_handler.set_counter(1, self.subject)
+            ocdm_conjunctive_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy')))
+            ocdm_conjunctive_graph.add((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('Bella zì')))
+            ocdm_conjunctive_graph.generate_provenance()
+            se_a_2: SnapshotEntity = ocdm_conjunctive_graph.get_entity(f'{self.subject}/prov/se/2')
+            self.assertEqual(se_a_2.get_description(), f"The entity '{self.subject}' was modified.")
+            self.assertEqual(se_a_2.get_is_snapshot_of(), URIRef(self.subject))
+            self.assertEqual(se_a_2.get_derives_from()[0].res, URIRef('https://w3id.org/oc/meta/br/0605/prov/se/1'))
+            self.assertEqual(se_a_2.get_update_action(), 'DELETE DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy" . } }; INSERT DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "Bella zì" . } }')
+        finally:
+            counter_handler.close()
 
     def test_generate_provenance_after_merge(self):
         ocdm_conjunctive_graph = OCDMDataset()

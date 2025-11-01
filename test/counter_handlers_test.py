@@ -149,6 +149,7 @@ class TestSqliteCounterHandler(unittest.TestCase):
             handler.set_counter(10, 'test_entity')
             result = handler.read_counter('test_entity')
             self.assertEqual(result, 10)
+            handler.close()
         finally:
             if os.path.exists(temp_db_path):
                 os.unlink(temp_db_path)
@@ -162,6 +163,7 @@ class TestSqliteCounterHandler(unittest.TestCase):
             with self.assertRaises(ValueError) as context:
                 handler.set_counter(-1, 'test_entity')
             self.assertIn("non negative integer", str(context.exception))
+            handler.close()
         finally:
             if os.path.exists(temp_db_path):
                 os.unlink(temp_db_path)
@@ -177,6 +179,7 @@ class TestSqliteCounterHandler(unittest.TestCase):
             # Read a different entity that doesn't exist
             result = handler.read_counter('nonexistent_entity')
             self.assertEqual(result, 0)
+            handler.close()
         finally:
             if os.path.exists(temp_db_path):
                 os.unlink(temp_db_path)
@@ -215,6 +218,7 @@ class TestSqliteCounterHandler(unittest.TestCase):
             with self.assertRaises(Exception) as context:
                 handler.read_counter('test_entity')
             self.assertIn("more than one counter", str(context.exception))
+            handler.close()
         finally:
             if os.path.exists(temp_db_path):
                 os.unlink(temp_db_path)
@@ -227,6 +231,7 @@ class TestSqliteCounterHandler(unittest.TestCase):
             handler = SqliteCounterHandler(temp_db_path)
             result = handler.increment_counter('new_entity')
             self.assertEqual(result, 1)
+            handler.close()
         finally:
             if os.path.exists(temp_db_path):
                 os.unlink(temp_db_path)
@@ -240,6 +245,7 @@ class TestSqliteCounterHandler(unittest.TestCase):
             handler.set_counter(5, 'existing_entity')
             result = handler.increment_counter('existing_entity')
             self.assertEqual(result, 6)
+            handler.close()
         finally:
             if os.path.exists(temp_db_path):
                 os.unlink(temp_db_path)
