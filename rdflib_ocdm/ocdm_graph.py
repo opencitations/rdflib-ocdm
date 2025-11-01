@@ -35,10 +35,9 @@ import pathlib
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 
-from rdflib import ConjunctiveGraph, Graph, URIRef
+from rdflib import Dataset, Graph, URIRef
 from rdflib.term import Node
 from rdflib_ocdm.counter_handler.counter_handler import CounterHandler
-from rdflib_ocdm.prov.prov_entity import ProvEntity
 from rdflib_ocdm.prov.provenance import OCDMProvenance
 from rdflib_ocdm.prov.snapshot_entity import SnapshotEntity
 
@@ -50,9 +49,17 @@ class OCDMGraphCommons():
         self.all_entities = set()
         self.provenance = OCDMProvenance(self, counter_handler)
 
-    def preexisting_finished(self: Graph|ConjunctiveGraph|OCDMGraphCommons, resp_agent: str = None, primary_source: str = None, c_time: str = None):
+    def preexisting_finished(self: Graph|Dataset|OCDMGraphCommons, resp_agent: str = None, primary_source: str = None, c_time: str = None):
         self.preexisting_graph = deepcopy(self)
-        for subject in self.subjects(unique=True):
+
+        unique_subjects = set()
+        if isinstance(self, Dataset):
+            for s, _, _, _ in self.quads((None, None, None, None)):
+                unique_subjects.add(s)
+        else:
+            unique_subjects = set(self.subjects(unique=True))
+
+        for subject in unique_subjects:
             self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source}
             self.all_entities.add(subject)
             count = self.provenance.counter_handler.read_counter(subject)
@@ -64,16 +71,28 @@ class OCDMGraphCommons():
                 new_snapshot: SnapshotEntity = self.provenance._create_snapshot(subject, cur_time)
                 new_snapshot.has_description(f"The entity '{str(subject)}' has been created.")
 
-    def merge(self: Graph|ConjunctiveGraph|OCDMGraphCommons, res: URIRef, other: URIRef):
-        triples_list: List[Tuple] = list(self.triples((None, None, other)))
-        for triple in triples_list:
-            self.remove(triple)
-            new_triple = (triple[0], triple[1], res)
-            self.add(new_triple)
-        triples_list: List[Tuple] = list(self.triples((other, None, None)))
-        for triple in triples_list:
-            self.remove(triple)
+    def merge(self: Graph|Dataset|OCDMGraphCommons, res: URIRef, other: URIRef):
+        if isinstance(self, Dataset):
+            quads_list: List[Tuple] = list(self.quads((None, None, other, None)))
+            for s, p, o, c in quads_list:
+                self.remove((s, p, o, c))
+                self.add((s, p, res, c))
+            quads_list: List[Tuple] = list(self.quads((other, None, None, None)))
+            for s, p, o, c in quads_list:
+                self.remove((s, p, o, c))
+        else:
+            triples_list: List[Tuple] = list(self.triples((None, None, other)))
+            for triple in triples_list:
+                self.remove(triple)
+                new_triple = (triple[0], triple[1], res)
+                self.add(new_triple)
+            triples_list: List[Tuple] = list(self.triples((other, None, None)))
+            for triple in triples_list:
+                self.remove(triple)
+
         self.__merge_index.setdefault(res, set()).add(other)
+        if other not in self.entity_index:
+            self.entity_index[other] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': None, 'source': None}
         self.entity_index[other]['to_be_deleted'] = True
     
     def mark_as_deleted(self, res: URIRef) -> None:
@@ -113,8 +132,8 @@ class OCDMGraphCommons():
         self.__entity_index = dict()
         self.preexisting_graph = deepcopy(self)
     
-    def get_provenance_graphs(self) -> ConjunctiveGraph:
-        prov_g = ConjunctiveGraph()
+    def get_provenance_graphs(self) -> Dataset:
+        prov_g = Dataset()
         for _, prov_entity in self.provenance.res_to_entity.items():
             for triple in prov_entity.g.triples((None, None, None)):
                 prov_g.add((triple[0], triple[1], triple[2], URIRef(prov_entity.prov_subject + '/prov/')))
@@ -287,11 +306,27 @@ class OCDMGraph(OCDMGraphCommons, Graph):
 
         return self
 
-class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
+class OCDMConjunctiveGraph(OCDMGraphCommons, Dataset):
     def __init__(self, counter_handler: CounterHandler = None):
-        ConjunctiveGraph.__init__(self)
-        self.preexisting_graph = ConjunctiveGraph()
+        Dataset.__init__(self)
+        self.preexisting_graph = Dataset()
         OCDMGraphCommons.__init__(self, counter_handler)
+
+    def __deepcopy__(self, memo):
+        new_graph = OCDMConjunctiveGraph(counter_handler=self.provenance.counter_handler)
+
+        # Copy graph data
+        for quad in self.quads((None, None, None, None)):
+            new_graph.add(quad)
+
+        # Copy entity index and metadata
+        for key, value in self.entity_index.items():
+            new_graph.entity_index[key] = value.copy()
+        new_graph.all_entities = self.all_entities.copy()
+        for key, value in self.merge_index.items():
+            new_graph._OCDMGraphCommons__merge_index[key] = value.copy()
+
+        return new_graph
 
     def add(
         self,
@@ -299,9 +334,9 @@ class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
             Tuple["_SubjectType", "_PredicateType", "_ObjectType", Optional[Any]],
             "_TripleType",
         ],
-        resp_agent = None, 
+        resp_agent = None,
         primary_source = None
-    ) -> "ConjunctiveGraph":
+    ) -> "Dataset":
         """
         Add a triple or quad to the store.
 
@@ -388,7 +423,11 @@ class OCDMConjunctiveGraph(OCDMGraphCommons, ConjunctiveGraph):
         context.parse(source, publicID=publicID, format=format, **args)
         # TODO: FIXME: This should not return context, but self.
 
-        for subject in self.subjects(unique=True):
+        unique_subjects = set()
+        for s, _, _, _ in self.quads((None, None, None, None)):
+            unique_subjects.add(s)
+
+        for subject in unique_subjects:
             if subject not in self.all_entities:
                 self.all_entities.add(subject)
 

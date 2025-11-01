@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 from collections import OrderedDict
 from datetime import datetime, timezone
 
-from rdflib import ConjunctiveGraph, URIRef
+from rdflib import Dataset, URIRef
 
 from rdflib_ocdm.counter_handler.counter_handler import CounterHandler
 from rdflib_ocdm.counter_handler.in_memory_counter_handler import \
@@ -36,9 +36,9 @@ from rdflib_ocdm.query_utils import get_update_query
 from rdflib_ocdm.support import get_prov_count
 
 
-class OCDMProvenance(ConjunctiveGraph):
+class OCDMProvenance(Dataset):
     def __init__(self, prov_subj_graph: OCDMGraphCommons, counter_handler: CounterHandler = None):
-        ConjunctiveGraph.__init__(self)
+        Dataset.__init__(self)
         self.prov_g = prov_subj_graph
         # The following variable maps a URIRef with the related provenance entity
         self.res_to_entity: Dict[URIRef, ProvEntity] = dict()

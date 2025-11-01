@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 from typing import Match
 
-from rdflib import RDF, XSD, ConjunctiveGraph, Graph, Literal, URIRef
+from rdflib import RDF, XSD, Dataset, Graph, Literal, URIRef
 
 prov_regex: str = r"^(.+)/prov/([a-z][a-z])/([1-9][0-9]*)$"
 
@@ -39,8 +39,8 @@ def get_prov_count(res: URIRef) -> str:
         return _get_match(prov_regex, 3, string_iri)
 
 def get_entity_subgraph(graph: Graph, entity: URIRef) -> Graph:
-    subj_graph: ConjunctiveGraph|Graph = ConjunctiveGraph() if isinstance(graph, ConjunctiveGraph) else Graph()
-    if isinstance(graph, ConjunctiveGraph):
+    subj_graph: Dataset|Graph = Dataset() if isinstance(graph, Dataset) else Graph()
+    if isinstance(graph, Dataset):
         for quad in graph.quads((entity, None, None, None)):
             subj_graph.add(quad)
     elif isinstance(graph, Graph):
@@ -53,8 +53,8 @@ def create_literal(g: Graph, res: URIRef, p: URIRef, s: str, dt: URIRef = None, 
         datatype = dt if dt is not None else XSD.string
         g.add((res, p, Literal(s, datatype=datatype, normalize=nor)))
 
-def create_type(g: ConjunctiveGraph|Graph, res: URIRef, res_type: URIRef, identifier: str = None) -> None:
-    if isinstance(g, ConjunctiveGraph):
+def create_type(g: Dataset|Graph, res: URIRef, res_type: URIRef, identifier: str = None) -> None:
+    if isinstance(g, Dataset):
         g.add((res, RDF.type, res_type, identifier))
     elif isinstance(g, Graph):
         g.add((res, RDF.type, res_type))
