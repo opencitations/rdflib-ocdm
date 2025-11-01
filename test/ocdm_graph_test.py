@@ -124,11 +124,16 @@ class TestOCDMGraph(unittest.TestCase):
             # Use the old name
             ocdm_graph = OCDMConjunctiveGraph(counter_handler=self.counter_handler)
 
-            # Check that a deprecation warning was issued
-            self.assertEqual(len(w), 1)
-            self.assertTrue(issubclass(w[0].category, DeprecationWarning))
-            self.assertIn("OCDMConjunctiveGraph is deprecated", str(w[0].message))
-            self.assertIn("use OCDMDataset instead", str(w[0].message))
+            # Filter for our specific deprecation warning
+            our_warnings = [
+                warning for warning in w
+                if issubclass(warning.category, DeprecationWarning)
+                and "OCDMConjunctiveGraph is deprecated" in str(warning.message)
+            ]
+
+            # Check that our deprecation warning was issued
+            self.assertEqual(len(our_warnings), 1)
+            self.assertIn("use OCDMDataset instead", str(our_warnings[0].message))
 
             # Check that it still works as OCDMDataset
             self.assertIsInstance(ocdm_graph, OCDMDataset)
