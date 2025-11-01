@@ -17,8 +17,10 @@
 import os
 import random
 import subprocess
+import tempfile
 import time
 import unittest
+from unittest.mock import Mock, patch
 
 from rdflib import Graph, Literal, URIRef
 from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
@@ -167,6 +169,42 @@ class TestStorer(unittest.TestCase):
             ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/1', 'http://www.w3.org/ns/prov#specializationOf', 'https://w3id.org/oc/meta/br/0605'), 
             ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/1', 'http://www.w3.org/ns/prov#wasAttributedTo', 'https://orcid.org/0000-0002-8420-0696'), 
             ('https://w3id.org/oc/meta/br/0636066666/prov/', 'https://w3id.org/oc/meta/br/0636066666/prov/se/1', 'http://www.w3.org/ns/prov#hadPrimarySource', 'https://api.crossref.org/'), 
-            ('https://w3id.org/oc/meta/br/0636066666/prov/', 'https://w3id.org/oc/meta/br/0636066666/prov/se/1', 'http://www.w3.org/ns/prov#wasAttributedTo', 'https://orcid.org/0000-0002-8420-0696'), 
+            ('https://w3id.org/oc/meta/br/0636066666/prov/', 'https://w3id.org/oc/meta/br/0636066666/prov/se/1', 'http://www.w3.org/ns/prov#wasAttributedTo', 'https://orcid.org/0000-0002-8420-0696'),
             ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/1', 'http://www.w3.org/ns/prov#hadPrimarySource', 'https://api.crossref.org/')}
         self.assertEqual(results, expected_result)
+
+    def test_storer_error_handling_with_base_dir(self):
+        """Test storer error handling when triplestore fails with base_dir"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            ocdm_graph = OCDMGraph()
+            ocdm_graph.add((URIRef('http://example.org/s'), URIRef('http://example.org/p'), Literal('test')))
+            storer = Storer(ocdm_graph)
+
+            # Mock execute_with_retry to always raise ValueError
+            with patch('rdflib_ocdm.storer.execute_with_retry', side_effect=ValueError("Connection failed")):
+                result = storer.upload_all('http://invalid-endpoint:9999/sparql', base_dir=temp_dir)
+
+                # Check that upload failed
+                self.assertFalse(result)
+
+                # Check that error file was created
+                tp_err_dir = os.path.join(temp_dir, 'tp_err')
+                self.assertTrue(os.path.exists(tp_err_dir))
+
+                # Check that error file contains the query
+                error_files = os.listdir(tp_err_dir)
+                self.assertEqual(len(error_files), 1)
+                self.assertTrue(error_files[0].endswith('_not_uploaded.txt'))
+
+    def test_storer_error_handling_without_base_dir(self):
+        """Test storer error handling when triplestore fails without base_dir"""
+        ocdm_graph = OCDMGraph()
+        ocdm_graph.add((URIRef('http://example.org/s'), URIRef('http://example.org/p'), Literal('test')))
+        storer = Storer(ocdm_graph)
+
+        # Mock execute_with_retry to always raise ValueError
+        with patch('rdflib_ocdm.storer.execute_with_retry', side_effect=ValueError("Connection failed")):
+            result = storer.upload_all('http://invalid-endpoint:9999/sparql', base_dir=None)
+
+            # Check that upload failed but no exception is raised
+            self.assertFalse(result)
