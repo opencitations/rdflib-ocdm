@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.5...v1.0.6) (2025-11-01)
+
+
+### Bug Fixes
+
+* fix bug in storer.py where ValueError message referenced ([520b472](https://github.com/opencitations/rdflib-ocdm/commit/520b472b11d6ff5f82817afb047e71ece8e1f3c7))
+
 ## [1.0.5](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.4...v1.0.5) (2025-10-29)
 
 
