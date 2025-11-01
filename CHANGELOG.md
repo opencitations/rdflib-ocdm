@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.6...v1.0.7) (2025-11-01)
+
+
+### Bug Fixes
+
+* Store graph_iri in entity_index during add/parse operations instead of ([144cc3c](https://github.com/opencitations/rdflib-ocdm/commit/144cc3cf57540106dbd13e29afa903b5aa6e64a7))
+
 ## [1.0.6](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.5...v1.0.6) (2025-11-01)
 
 
