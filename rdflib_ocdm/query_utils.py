@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 from rdflib import Dataset, Graph, URIRef
 from rdflib.compare import graph_diff, to_isomorphic
 
+from rdflib_ocdm.graph_utils import _extract_graph_iri
 from rdflib_ocdm.support import get_entity_subgraph
 
 
@@ -61,19 +62,15 @@ def get_update_query(a_set: OCDMGraphCommons|Dataset|Graph, entity: URIRef, enti
     elif entity_type == 'prov':
         to_be_deleted = False
         preexisting_graph = Dataset()
+
+    # Extract graph_iri: prefer entity_index (OCDMDataset), fallback to helper function (regular Dataset)
     if isinstance(a_set, Dataset):
-        relevant_graph = preexisting_graph if entity_type == 'graph' and to_be_deleted else a_set
-        context = set()
-        named_contexts = set()
-        for quad in relevant_graph.quads((entity, None, None, None)):
-            context_identifier = quad[3].identifier if hasattr(quad[3], 'identifier') else quad[3]
-            if isinstance(context_identifier, URIRef):
-                context.add(context_identifier)
-                # Separate named graphs from default graphs
-                if not str(context_identifier).startswith('urn:x-rdflib:'):
-                    named_contexts.add(context_identifier)
-        # Prefer named contexts over default contexts
-        graph_iri = named_contexts.pop() if named_contexts else (context.pop() if context else None)
+        if hasattr(a_set, 'entity_index') and entity in a_set.entity_index:
+            # Clean architectural solution: use stored graph_iri from entity_index
+            graph_iri = a_set.entity_index[entity].get('graph_iri')
+        else:
+            # Fallback for regular Dataset (e.g., provenance graphs): use DRY helper function
+            graph_iri = _extract_graph_iri(a_set, entity)
     elif isinstance(a_set, Graph):
         graph_iri = None
     if to_be_deleted:

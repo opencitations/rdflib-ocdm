@@ -168,5 +168,41 @@ class TestOCDMProvenance(unittest.TestCase):
         self.assertEqual(restore_snapshot.get_derives_from()[0].res, deletion_snapshot.res)
         self.assertIsNotNone(restore_snapshot.get_update_action())
 
+    def test_entity_deleted_after_mark_with_graph_context(self):
+        """
+        Test that deletion queries correctly include GRAPH statement when entity
+        is marked for deletion. The graph_iri is stored in entity_index during
+        add/parse operations and remains available even after the entity is
+        marked for deletion or removed during merge.
+        """
+        # Load existing data with named graphs
+        ocdm_dataset = OCDMDataset()
+        ocdm_dataset.parse(os.path.join('test', 'br.nq'))
+        ocdm_dataset.preexisting_finished(c_time=self.cur_time)
+
+        # Use an existing entity from the test data
+        entity_uri = URIRef('https://w3id.org/oc/meta/id/0605')
+
+        # Verify graph_iri is stored in entity_index
+        self.assertIn(entity_uri, ocdm_dataset.entity_index)
+        self.assertEqual(ocdm_dataset.entity_index[entity_uri]['graph_iri'], URIRef('https://w3id.org/oc/meta/id/'))
+
+        # Mark it for deletion
+        ocdm_dataset.mark_as_deleted(entity_uri)
+        ocdm_dataset.generate_provenance(c_time=self.cur_time + 100)
+
+        # Get the deletion snapshot
+        deletion_snapshot = ocdm_dataset.get_entity(f'{entity_uri}/prov/se/2')
+        self.assertIsNotNone(deletion_snapshot)
+        self.assertEqual(deletion_snapshot.get_description(), f"The entity '{entity_uri}' has been deleted.")
+
+        # Verify that the update action includes the correct GRAPH statement
+        # graph_iri is retrieved from entity_index, not dynamically searched
+        update_action = deletion_snapshot.get_update_action()
+        self.assertIn('GRAPH <https://w3id.org/oc/meta/id/>', update_action,
+                     "Deletion query should include correct GRAPH statement from entity_index")
+        self.assertIn('DELETE DATA', update_action)
+        self.assertIn(str(entity_uri), update_action)
+
 if __name__ == '__main__':
     unittest.main()
