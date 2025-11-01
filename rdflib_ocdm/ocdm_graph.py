@@ -32,6 +32,7 @@ if TYPE_CHECKING:
                         Union, List, Tuple)
 
 import pathlib
+import warnings
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 
@@ -307,14 +308,14 @@ class OCDMGraph(OCDMGraphCommons, Graph):
 
         return self
 
-class OCDMConjunctiveGraph(OCDMGraphCommons, Dataset):
+class OCDMDataset(OCDMGraphCommons, Dataset):
     def __init__(self, counter_handler: CounterHandler = None):
         Dataset.__init__(self)
         self.preexisting_graph = Dataset()
         OCDMGraphCommons.__init__(self, counter_handler)
 
     def __deepcopy__(self, memo):
-        new_graph = OCDMConjunctiveGraph(counter_handler=self.provenance.counter_handler)
+        new_graph = OCDMDataset(counter_handler=self.provenance.counter_handler)
 
         # Copy graph data
         for quad in self.quads((None, None, None, None)):
@@ -441,3 +442,21 @@ def _assertnode(*terms):
     for t in terms:
         assert isinstance(t, Node), "Term %s must be an rdflib term" % (t,)
     return True
+
+
+# Backward compatibility alias
+class OCDMConjunctiveGraph(OCDMDataset):
+    """
+    Deprecated: Use OCDMDataset instead.
+
+    This class is maintained for backward compatibility only.
+    OCDMConjunctiveGraph has been renamed to OCDMDataset to reflect
+    the migration from the deprecated ConjunctiveGraph to Dataset.
+    """
+    def __init__(self, counter_handler: CounterHandler = None):
+        warnings.warn(
+            "OCDMConjunctiveGraph is deprecated, use OCDMDataset instead",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(counter_handler)

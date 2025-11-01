@@ -24,7 +24,7 @@ from rdflib_ocdm.counter_handler.filesystem_counter_handler import \
     FilesystemCounterHandler
 from rdflib_ocdm.counter_handler.sqlite_counter_handler import \
     SqliteCounterHandler
-from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
+from rdflib_ocdm.ocdm_graph import OCDMDataset, OCDMGraph
 from rdflib_ocdm.prov.provenance import OCDMProvenance
 from rdflib_ocdm.prov.snapshot_entity import SnapshotEntity
 
@@ -71,7 +71,7 @@ class TestOCDMProvenance(unittest.TestCase):
 
     def test_generate_provenance_modification_ocdm_conjunctive_graph_filesystem_counter(self):
         counter_handler = FilesystemCounterHandler(os.path.join('test', 'info_dir'))
-        ocdm_conjunctive_graph = OCDMConjunctiveGraph(counter_handler=counter_handler)
+        ocdm_conjunctive_graph = OCDMDataset(counter_handler=counter_handler)
         ocdm_conjunctive_graph.parse(os.path.join('test', 'br.nq'))
         ocdm_conjunctive_graph.provenance.counter_handler.set_counter(1, self.subject)
         ocdm_conjunctive_graph.preexisting_finished()
@@ -88,7 +88,7 @@ class TestOCDMProvenance(unittest.TestCase):
 
     def test_generate_provenance_modification_ocdm_conjunctive_graph_database_counter(self):
         counter_handler = SqliteCounterHandler(os.path.join('test', 'database.db'))
-        ocdm_conjunctive_graph = OCDMConjunctiveGraph(counter_handler=counter_handler)
+        ocdm_conjunctive_graph = OCDMDataset(counter_handler=counter_handler)
         ocdm_conjunctive_graph.parse(os.path.join('test', 'br.nq'))
         ocdm_conjunctive_graph.provenance.counter_handler.set_counter(1, self.subject)
         ocdm_conjunctive_graph.preexisting_finished()
@@ -103,7 +103,7 @@ class TestOCDMProvenance(unittest.TestCase):
         self.assertEqual(se_a_2.get_update_action(), 'DELETE DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy" . } }; INSERT DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "Bella zì" . } }')
 
     def test_generate_provenance_after_merge(self):
-        ocdm_conjunctive_graph = OCDMConjunctiveGraph()
+        ocdm_conjunctive_graph = OCDMDataset()
         ocdm_conjunctive_graph.parse(os.path.join('test', 'br.nq'))
         ocdm_conjunctive_graph.preexisting_finished()
         ocdm_conjunctive_graph.merge(URIRef('https://w3id.org/oc/meta/id/0605'), URIRef('https://w3id.org/oc/meta/id/0636064270'))

@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING
 from oc_ocdm.support.reporter import Reporter
 from SPARQLWrapper import SPARQLWrapper
 
-from rdflib_ocdm.ocdm_graph import (OCDMConjunctiveGraph, OCDMGraph,
+from rdflib_ocdm.ocdm_graph import (OCDMDataset, OCDMGraph,
                                     OCDMGraphCommons)
 from rdflib_ocdm.query_utils import get_update_query
 from rdflib_ocdm.retry_utils import execute_with_retry
@@ -103,7 +103,7 @@ class Storer(object):
         removed_statements: int = 0
         skipped_queries: int = 0
         result: bool = True
-        entity_type = 'graph' if isinstance(self.a_set, OCDMGraph) or isinstance(self.a_set, OCDMConjunctiveGraph) else 'prov'
+        entity_type = 'graph' if isinstance(self.a_set, OCDMGraph) or isinstance(self.a_set, OCDMDataset) else 'prov'
         for idx, entity in enumerate(list(self.a_set.all_entities)):
             update_query, n_added, n_removed = get_update_query(self.a_set, entity, entity_type)
             if update_query == "":

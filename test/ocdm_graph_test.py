@@ -15,12 +15,13 @@
 # SOFTWARE.
 
 import unittest
+import warnings
 
 from rdflib import Literal, Namespace, URIRef
 
 from rdflib_ocdm.counter_handler.in_memory_counter_handler import \
     InMemoryCounterHandler
-from rdflib_ocdm.ocdm_graph import OCDMGraph
+from rdflib_ocdm.ocdm_graph import OCDMGraph, OCDMDataset, OCDMConjunctiveGraph
 
 
 class TestOCDMGraph(unittest.TestCase):
@@ -114,6 +115,28 @@ class TestOCDMGraph(unittest.TestCase):
         # Check that B was added to entity_index
         self.assertIn(entity_b, ocdm_graph.entity_index)
         self.assertTrue(ocdm_graph.entity_index[entity_b]['to_be_deleted'])
+
+    def test_backward_compatibility_ocdm_conjunctive_graph(self):
+        """Test that OCDMConjunctiveGraph still works but issues deprecation warning"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            # Use the old name
+            ocdm_graph = OCDMConjunctiveGraph(counter_handler=self.counter_handler)
+
+            # Check that a deprecation warning was issued
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[0].category, DeprecationWarning))
+            self.assertIn("OCDMConjunctiveGraph is deprecated", str(w[0].message))
+            self.assertIn("use OCDMDataset instead", str(w[0].message))
+
+            # Check that it still works as OCDMDataset
+            self.assertIsInstance(ocdm_graph, OCDMDataset)
+
+            # Test basic functionality
+            entity = URIRef('http://example.org/entity')
+            ocdm_graph.add((entity, self.FOAF.name, Literal('Test')))
+            self.assertEqual(len(list(ocdm_graph.quads((entity, None, None, None)))), 1)
 
 
 if __name__ == '__main__':

@@ -19,7 +19,7 @@ from unittest.mock import MagicMock, patch
 
 from rdflib import XSD, Graph, Literal, URIRef
 
-from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
+from rdflib_ocdm.ocdm_graph import OCDMDataset, OCDMGraph
 from rdflib_ocdm.reader import Reader
 
 
@@ -103,7 +103,7 @@ class TestReader(unittest.TestCase):
         
         mock_sparql.return_value.queryAndConvert.return_value = mock_response
         
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         self.reader.import_entities_from_triplestore(ocdm_graph, self.ts_url, self.res_list)
         
         quads = list(ocdm_graph.quads())
@@ -171,7 +171,7 @@ class TestReader(unittest.TestCase):
         """Test behavior when no results are returned from the triplestore for OCDMConjunctiveGraph."""
         mock_sparql.return_value.queryAndConvert.return_value = {"results": {"bindings": []}}
         
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         
         self.reader.import_entities_from_triplestore(ocdm_graph, self.ts_url, self.res_list)
         self.assertEqual(len(list(ocdm_graph.quads())), 0)
@@ -181,7 +181,7 @@ class TestReader(unittest.TestCase):
         """Test behavior when an invalid response is returned from the triplestore."""
         mock_sparql.return_value.queryAndConvert.return_value = {}
         
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         
         with self.assertRaises(ValueError) as context:
             self.reader.import_entities_from_triplestore(ocdm_graph, self.ts_url, self.res_list)
@@ -191,7 +191,7 @@ class TestReader(unittest.TestCase):
         """Test behavior when an invalid graph type is provided."""
         with self.assertRaises(TypeError) as context:
             self.reader.import_entities_from_triplestore("not_a_graph", self.ts_url, self.res_list)
-        self.assertIn("must be either OCDMGraph or OCDMConjunctiveGraph", str(context.exception))
+        self.assertIn("must be either OCDMGraph or OCDMDataset", str(context.exception))
     
     @patch('rdflib_ocdm.reader.SPARQLWrapper')
     def test_import_entities_with_uri_object(self, mock_sparql):
@@ -211,7 +211,7 @@ class TestReader(unittest.TestCase):
         
         mock_sparql.return_value.queryAndConvert.return_value = mock_response
         
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         self.reader.import_entities_from_triplestore(ocdm_graph, self.ts_url, self.res_list)
         
         quads = list(ocdm_graph.quads())

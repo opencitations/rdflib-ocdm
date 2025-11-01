@@ -21,7 +21,7 @@ from oc_ocdm.support.reporter import Reporter
 from rdflib import Dataset, Graph, Literal, URIRef
 from SPARQLWrapper import JSON, POST, XML, SPARQLWrapper
 
-from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
+from rdflib_ocdm.ocdm_graph import OCDMDataset, OCDMGraph
 from rdflib_ocdm.retry_utils import execute_with_retry
 
 
@@ -38,10 +38,10 @@ class Reader(object):
             self.reperr: Reporter = reperr
 
     @staticmethod
-    def import_entities_from_triplestore(ocdm_graph: Union[OCDMGraph, OCDMConjunctiveGraph], ts_url: str, res_list: List[URIRef], max_retries: int = 5) -> None:
+    def import_entities_from_triplestore(ocdm_graph: Union[OCDMGraph, OCDMDataset], ts_url: str, res_list: List[URIRef], max_retries: int = 5) -> None:
         sparql: SPARQLWrapper = SPARQLWrapper(ts_url)
         
-        if isinstance(ocdm_graph, OCDMConjunctiveGraph):
+        if isinstance(ocdm_graph, OCDMDataset):
             query: str = f'''
                 SELECT ?g ?s ?p ?o (LANG(?o) AS ?lang)
                 WHERE {{
@@ -117,4 +117,4 @@ class Reader(object):
                 raise ValueError("No entities were found.")
         
         else:
-            raise TypeError("ocdm_graph must be either OCDMGraph or OCDMConjunctiveGraph")
+            raise TypeError("ocdm_graph must be either OCDMGraph or OCDMDataset")

@@ -27,7 +27,7 @@ from oc_ocdm.support.reporter import Reporter
 from rdflib import Graph, Literal, URIRef
 from SPARQLWrapper import JSON, POST, SPARQLWrapper
 
-from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
+from rdflib_ocdm.ocdm_graph import OCDMDataset, OCDMGraph
 from rdflib_ocdm.storer import Storer
 
 
@@ -96,7 +96,7 @@ class TestStorer(unittest.TestCase):
 
     def test_upload_all_graph(self):
         self.maxDiff = None
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         ocdm_graph.preexisting_finished()
         ocdm_graph.parse(os.path.join('test', 'br_small.nq'))
         storer = Storer(ocdm_graph)
@@ -137,7 +137,7 @@ class TestStorer(unittest.TestCase):
 
     def test_upload_all_provenance(self):
         self.maxDiff = None
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         ocdm_graph.parse(os.path.join('test', 'br_small.nq'), resp_agent='https://orcid.org/0000-0002-8420-0696', primary_source='https://api.crossref.org/')
         ocdm_graph.preexisting_finished(resp_agent='https://orcid.org/0000-0002-8420-0696', primary_source='https://api.crossref.org/', c_time=self.cur_time)
         ocdm_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy'), Graph(identifier=URIRef('https://w3id.org/oc/meta/br/'))))
@@ -242,7 +242,7 @@ class TestStorer(unittest.TestCase):
 
     def test_storer_batch_upload_multiple_batches(self):
         """Test storer with batch_size that triggers multiple batches"""
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         ocdm_graph.preexisting_finished()
 
         # Add multiple entities to trigger batch processing
@@ -277,7 +277,7 @@ class TestStorer(unittest.TestCase):
 
     def test_storer_negative_batch_size(self):
         """Test storer with negative batch_size defaults to 10"""
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         ocdm_graph.preexisting_finished()
         ocdm_graph.add((URIRef('http://example.org/s'), URIRef('http://example.org/p'), Literal('test'), Graph(identifier=URIRef('http://example.org/graph/'))))
 
@@ -291,7 +291,7 @@ class TestStorer(unittest.TestCase):
 
     def test_storer_zero_batch_size(self):
         """Test storer with zero batch_size defaults to 10"""
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         ocdm_graph.preexisting_finished()
         ocdm_graph.add((URIRef('http://example.org/s'), URIRef('http://example.org/p'), Literal('test'), Graph(identifier=URIRef('http://example.org/graph/'))))
 

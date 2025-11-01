@@ -4,7 +4,7 @@ import unittest
 
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
 
-from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
+from rdflib_ocdm.ocdm_graph import OCDMDataset, OCDMGraph
 from rdflib_ocdm.query_utils import (get_delete_query, get_insert_query,
                                      get_update_query)
 
@@ -78,7 +78,7 @@ class TestQueryUtils(unittest.TestCase):
 
     def test_get_update_query_with_graph_type(self):
         """Test get_update_query with entity_type='graph'"""
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         ocdm_graph.preexisting_finished()
         entity = URIRef('http://example.org/entity')
         ocdm_graph.add((entity, URIRef('http://example.org/p'), Literal('test'), Graph(identifier=URIRef('http://example.org/graph/'))))
@@ -125,7 +125,7 @@ class TestQueryUtils(unittest.TestCase):
 
     def test_get_update_query_deleted_entity(self):
         """Test get_update_query with deleted entity"""
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         entity = URIRef('http://example.org/entity')
         ocdm_graph.add((entity, URIRef('http://example.org/p'), Literal('test'), Graph(identifier=URIRef('http://example.org/graph/'))))
         ocdm_graph.preexisting_finished()
@@ -140,7 +140,7 @@ class TestQueryUtils(unittest.TestCase):
 
     def test_get_update_query_no_changes(self):
         """Test get_update_query when entity has no changes"""
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         entity = URIRef('http://example.org/entity')
         ocdm_graph.add((entity, URIRef('http://example.org/p'), Literal('test'), Graph(identifier=URIRef('http://example.org/graph/'))))
         ocdm_graph.preexisting_finished()
@@ -153,7 +153,7 @@ class TestQueryUtils(unittest.TestCase):
 
     def test_get_update_query_with_modifications(self):
         """Test get_update_query with both additions and deletions"""
-        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph = OCDMDataset()
         entity = URIRef('http://example.org/entity')
         graph_id = URIRef('http://example.org/graph/')
 
