@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import unittest
-import fakeredis
 from unittest.mock import patch
-from rdflib_ocdm.counter_handler.redis_counter_handler import RedisCounterHandler
+
+import fakeredis
+
+from rdflib_ocdm.counter_handler.redis_counter_handler import \
+    RedisCounterHandler
+
 
 class TestRedisCounterHandler(unittest.TestCase):
     @classmethod

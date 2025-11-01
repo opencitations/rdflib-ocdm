@@ -16,7 +16,9 @@
 
 import unittest
 from unittest.mock import MagicMock, patch
+
 from rdflib_ocdm.retry_utils import execute_with_retry
+
 
 class MockReporter:
     def __init__(self):

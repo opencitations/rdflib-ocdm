@@ -16,16 +16,19 @@
 
 import os
 import random
+import shutil
 import subprocess
 import tempfile
 import time
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
+from oc_ocdm.support.reporter import Reporter
 from rdflib import Graph, Literal, URIRef
+from SPARQLWrapper import JSON, POST, SPARQLWrapper
+
 from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
 from rdflib_ocdm.storer import Storer
-from SPARQLWrapper import JSON, POST, SPARQLWrapper
 
 
 class TestStorer(unittest.TestCase):
@@ -66,12 +69,12 @@ class TestStorer(unittest.TestCase):
         self.ts = SPARQLWrapper(self.endpoint)
         self.ts.setMethod(POST)
         self.ts.setReturnFormat(JSON)
-        
+
         # Add retry logic for the initial query
         max_retries = 5
         retry_count = 0
         base_wait_time = 1
-        
+
         while retry_count <= max_retries:
             try:
                 self.ts.query()
@@ -84,6 +87,12 @@ class TestStorer(unittest.TestCase):
                     time.sleep(wait_time)
                 else:
                     raise Exception(f"Failed to connect to triplestore after {max_retries} attempts: {e}")
+
+    def tearDown(self):
+        """Clean up error files created during tests"""
+        tp_err_dir = os.path.join(self.base_dir, 'tp_err')
+        if os.path.exists(tp_err_dir):
+            shutil.rmtree(tp_err_dir)
 
     def test_upload_all_graph(self):
         self.maxDiff = None
@@ -208,3 +217,88 @@ class TestStorer(unittest.TestCase):
 
             # Check that upload failed but no exception is raised
             self.assertFalse(result)
+
+    def test_storer_unsupported_output_format(self):
+        """Test that storer raises ValueError for unsupported output format"""
+        ocdm_graph = OCDMGraph()
+        with self.assertRaises(ValueError) as context:
+            Storer(ocdm_graph, output_format='unsupported-format')
+        self.assertIn("not supported", str(context.exception))
+        self.assertIn("unsupported-format", str(context.exception))
+
+    def test_storer_custom_reporters(self):
+        """Test storer with custom Reporter objects"""
+        ocdm_graph = OCDMGraph()
+        ocdm_graph.add((URIRef('http://example.org/s'), URIRef('http://example.org/p'), Literal('test')))
+
+        custom_repok = Reporter(prefix="[CUSTOM OK] ")
+        custom_reperr = Reporter(prefix="[CUSTOM ERROR] ")
+
+        storer = Storer(ocdm_graph, repok=custom_repok, reperr=custom_reperr)
+
+        # Verify custom reporters are used
+        self.assertEqual(storer.repok, custom_repok)
+        self.assertEqual(storer.reperr, custom_reperr)
+
+    def test_storer_batch_upload_multiple_batches(self):
+        """Test storer with batch_size that triggers multiple batches"""
+        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph.preexisting_finished()
+
+        # Add multiple entities to trigger batch processing
+        for i in range(5):
+            ocdm_graph.add((
+                URIRef(f'http://example.org/entity/{i}'),
+                URIRef('http://purl.org/dc/terms/title'),
+                Literal(f'Entity {i}'),
+                Graph(identifier=URIRef('http://example.org/graph/'))
+            ))
+
+        storer = Storer(ocdm_graph)
+
+        # Use batch_size=2 to ensure multiple batches are created
+        result = storer.upload_all(self.endpoint, self.base_dir, batch_size=2)
+
+        # Verify upload succeeded
+        self.assertTrue(result)
+
+        # Verify entities are in the triplestore
+        query = '''
+            SELECT (COUNT(?s) as ?count)
+            WHERE {
+                ?s <http://purl.org/dc/terms/title> ?o .
+                FILTER(STRSTARTS(STR(?s), "http://example.org/entity/"))
+            }
+        '''
+        self.ts.setQuery(query)
+        results = self.ts.queryAndConvert()
+        count = int(results['results']['bindings'][0]['count']['value'])
+        self.assertEqual(count, 5)
+
+    def test_storer_negative_batch_size(self):
+        """Test storer with negative batch_size defaults to 10"""
+        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph.preexisting_finished()
+        ocdm_graph.add((URIRef('http://example.org/s'), URIRef('http://example.org/p'), Literal('test'), Graph(identifier=URIRef('http://example.org/graph/'))))
+
+        storer = Storer(ocdm_graph)
+
+        # Use negative batch_size
+        result = storer.upload_all(self.endpoint, self.base_dir, batch_size=-5)
+
+        # Should succeed (defaults to 10)
+        self.assertTrue(result)
+
+    def test_storer_zero_batch_size(self):
+        """Test storer with zero batch_size defaults to 10"""
+        ocdm_graph = OCDMConjunctiveGraph()
+        ocdm_graph.preexisting_finished()
+        ocdm_graph.add((URIRef('http://example.org/s'), URIRef('http://example.org/p'), Literal('test'), Graph(identifier=URIRef('http://example.org/graph/'))))
+
+        storer = Storer(ocdm_graph)
+
+        # Use zero batch_size
+        result = storer.upload_all(self.endpoint, self.base_dir, batch_size=0)
+
+        # Should succeed (defaults to 10)
+        self.assertTrue(result)

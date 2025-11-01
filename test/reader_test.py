@@ -18,6 +18,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from rdflib import XSD, Graph, Literal, URIRef
+
 from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
 from rdflib_ocdm.reader import Reader
 

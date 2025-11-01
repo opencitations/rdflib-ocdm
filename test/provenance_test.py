@@ -17,12 +17,17 @@
 import json
 import os
 import unittest
+
 from rdflib import Literal, URIRef
-from rdflib_ocdm.counter_handler.filesystem_counter_handler import FilesystemCounterHandler
-from rdflib_ocdm.counter_handler.sqlite_counter_handler import SqliteCounterHandler
+
+from rdflib_ocdm.counter_handler.filesystem_counter_handler import \
+    FilesystemCounterHandler
+from rdflib_ocdm.counter_handler.sqlite_counter_handler import \
+    SqliteCounterHandler
 from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
 from rdflib_ocdm.prov.provenance import OCDMProvenance
 from rdflib_ocdm.prov.snapshot_entity import SnapshotEntity
+
 
 class TestOCDMProvenance(unittest.TestCase):
     def setUp(self):

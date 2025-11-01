@@ -15,9 +15,12 @@
 # SOFTWARE.
 
 import unittest
-from rdflib import Literal, URIRef, Namespace
+
+from rdflib import Literal, Namespace, URIRef
+
+from rdflib_ocdm.counter_handler.in_memory_counter_handler import \
+    InMemoryCounterHandler
 from rdflib_ocdm.ocdm_graph import OCDMGraph
-from rdflib_ocdm.counter_handler.in_memory_counter_handler import InMemoryCounterHandler
 
 
 class TestOCDMGraph(unittest.TestCase):

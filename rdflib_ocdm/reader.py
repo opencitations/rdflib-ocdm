@@ -19,9 +19,10 @@ from typing import List, Union
 
 from oc_ocdm.support.reporter import Reporter
 from rdflib import Dataset, Graph, Literal, URIRef
+from SPARQLWrapper import JSON, POST, XML, SPARQLWrapper
+
 from rdflib_ocdm.ocdm_graph import OCDMConjunctiveGraph, OCDMGraph
 from rdflib_ocdm.retry_utils import execute_with_retry
-from SPARQLWrapper import JSON, POST, XML, SPARQLWrapper
 
 
 class Reader(object):
