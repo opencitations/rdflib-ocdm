@@ -3,7 +3,7 @@ version = 1
 [[annotations]]
 path = [
     ".gitignore",
-    "poetry.lock",
+    "uv.lock",
     "pyproject.toml",
     "test/coverage/.coverage",
     "test/coverage/coverage.svg",

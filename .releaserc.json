@@ -5,13 +5,11 @@
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
     ["@semantic-release/exec", {
-      "verifyConditionsCmd": "echo 'Verifying conditions...'",
-      "prepareCmd": "poetry version ${nextRelease.version}",
-      "successCmd": "echo 'Release successful!'"
+      "prepareCmd": "uv version ${nextRelease.version} && uv lock"
     }],
     ["@semantic-release/git", {
-      "assets": ["pyproject.toml", "CHANGELOG.md"],
-      "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      "assets": ["pyproject.toml", "uv.lock", "CHANGELOG.md"],
+      "message": "chore(release): ${nextRelease.version}\n\n${nextRelease.notes}"
     }],
     "@semantic-release/github"
   ]
