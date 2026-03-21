@@ -1,6 +1,13 @@
+<!--
+SPDX-FileCopyrightText: 2023-2025 Arcangelo Massari <arcangelo.massari@unibo.it>
+
+SPDX-License-Identifier: ISC
+-->
+
 [<img src="https://img.shields.io/badge/powered%20by-OpenCitations-%239931FC?labelColor=2D22DE" />](http://opencitations.net)
 [![Run tests](https://github.com/opencitations/rdflib-ocdm/actions/workflows/run_tests.yml/badge.svg)](https://github.com/opencitations/rdflib-ocdm/actions/workflows/run_tests.yml)
 [![Coverage](https://byob.yarr.is/arcangelo7/badges/opencitations-rdflib-ocdm-coverage-main)](https://opencitations.github.io/rdflib-ocdm/)
+[![REUSE](https://github.com/opencitations/rdflib-ocdm/actions/workflows/reuse.yml/badge.svg)](https://github.com/opencitations/rdflib-ocdm/actions/workflows/reuse.yml)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rdflib-ocdm?logo=python&logoColor=white)](https://pypi.org/project/rdflib-ocdm/)
 [![PyPI version](https://img.shields.io/pypi/v/rdflib-ocdm?logo=pypi&logoColor=white)](https://pypi.org/project/rdflib-ocdm/)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/opencitations/rdflib-ocdm)

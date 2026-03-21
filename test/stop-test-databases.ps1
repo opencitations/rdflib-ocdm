@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Arcangelo Massari <arcangelo.massari@unibo.it>
+#
+# SPDX-License-Identifier: ISC
+
 Write-Host "Stopping databases..."
 docker stop rdflib_ocdm_dataset_db rdflib_ocdm_provenance_db 2>$null
 

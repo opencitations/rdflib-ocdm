@@ -1,0 +1,38 @@
+version = 1
+
+[[annotations]]
+path = [
+    ".gitignore",
+    "poetry.lock",
+    "pyproject.toml",
+    "test/coverage/.coverage",
+    "test/coverage/coverage.svg",
+]
+SPDX-FileCopyrightText = "2023-2025 Arcangelo Massari <arcangelo.massari@unibo.it>"
+SPDX-License-Identifier = "ISC"
+
+[[annotations]]
+path = [
+    "test/br.nq",
+    "test/br.nt",
+]
+SPDX-FileCopyrightText = "2023 Arcangelo Massari <arcangelo.massari@unibo.it>"
+SPDX-License-Identifier = "ISC"
+
+[[annotations]]
+path = "test/br_small.nq"
+SPDX-FileCopyrightText = "2024 Arcangelo Massari <arcangelo.massari@unibo.it>"
+SPDX-License-Identifier = "ISC"
+
+[[annotations]]
+path = ".coverage"
+SPDX-FileCopyrightText = "2024-2025 Arcangelo Massari <arcangelo.massari@unibo.it>"
+SPDX-License-Identifier = "ISC"
+
+[[annotations]]
+path = [
+    ".releaserc.json",
+    "LICENSE",
+]
+SPDX-FileCopyrightText = "2025 Arcangelo Massari <arcangelo.massari@unibo.it>"
+SPDX-License-Identifier = "ISC"

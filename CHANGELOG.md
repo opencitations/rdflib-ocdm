@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 Arcangelo Massari <arcangelo.massari@unibo.it>
+
+SPDX-License-Identifier: ISC
+-->
+
 ## [1.0.7](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.6...v1.0.7) (2025-11-01)
 
 

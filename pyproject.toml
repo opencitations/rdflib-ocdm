@@ -2,7 +2,7 @@
 name = "rdflib-ocdm"
 version = "1.0.7"
 description = ""
-authors = ["arcangelo7 <arcangelomas@gmail.com>"]
+authors = ["Arcangelo Massari <arcangelo.massari@unibo.it>"]
 license = "ISC"
 readme = "README.md"
 packages = [{include = "rdflib_ocdm"}]
@@ -20,6 +20,7 @@ coverage = "^7.2.3"
 coverage-badge = "^1.1.0"
 isort = "^6.0.1"
 fakeredis = "^2.29.0"
+reuse = {version = ">=6.2.0", python = ">=3.10"}
 
 [build-system]
 requires = ["poetry-core"]

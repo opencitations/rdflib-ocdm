@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Arcangelo Massari <arcangelo.massari@unibo.it>
+#
+# SPDX-License-Identifier: ISC
+
 # Stop and remove existing containers if they exist
 Write-Host "Cleaning up existing containers and volumes..."
 docker stop rdflib_ocdm_dataset_db rdflib_ocdm_provenance_db 2>$null
