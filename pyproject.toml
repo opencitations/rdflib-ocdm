@@ -20,12 +20,23 @@ dev = [
     "genbadge[coverage]>=1.1.3,<2",
     "isort>=6.0.1,<7",
     "pyright>=1.1.409",
+    "pytest>=9.0.3",
     "reuse>=6.2.0",
 ]
 
 [tool.pyright]
 pythonVersion = "3.10"
 typeCheckingMode = "standard"
+
+[tool.pytest.ini_options]
+python_files = "*_test.py"
+python_classes = "Test*"
+python_functions = "test_*"
+
+[tool.coverage.run]
+source = ["rdflib_ocdm"]
+branch = true
+command_line = "-m pytest test/"
 
 [build-system]
 requires = ["hatchling"]

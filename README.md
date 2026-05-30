@@ -8,7 +8,7 @@ SPDX-License-Identifier: ISC
 [![Run tests](https://github.com/opencitations/rdflib-ocdm/actions/workflows/run_tests.yml/badge.svg)](https://github.com/opencitations/rdflib-ocdm/actions/workflows/run_tests.yml)
 [![Pyright](https://github.com/opencitations/rdflib-ocdm/actions/workflows/pyright.yml/badge.svg)](https://github.com/opencitations/rdflib-ocdm/actions/workflows/pyright.yml)
 [![Coverage](https://opencitations.github.io/rdflib-ocdm/coverage-badge.svg)](https://opencitations.github.io/rdflib-ocdm/)
-[![REUSE](https://github.com/opencitations/rdflib-ocdm/actions/workflows/reuse.yml/badge.svg)](https://github.com/opencitations/rdflib-ocdm/actions/workflows/reuse.yml)
+[![REUSE status](https://api.reuse.software/badge/github.com/opencitations/rdflib-ocdm)](https://api.reuse.software/info/github.com/opencitations/rdflib-ocdm)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rdflib-ocdm?logo=python&logoColor=white)](https://pypi.org/project/rdflib-ocdm/)
 [![PyPI version](https://img.shields.io/pypi/v/rdflib-ocdm?logo=pypi&logoColor=white)](https://pypi.org/project/rdflib-ocdm/)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/opencitations/rdflib-ocdm)
@@ -114,61 +114,34 @@ g.generate_provenance()
 
 # Get the provenance graphs that contain the delta information
 prov_graphs = g.get_provenance_graphs()
+```
 
 ## Running Tests
 
-The project includes a comprehensive test suite to ensure functionality and maintain code quality. To run the tests locally:
-
 ### Prerequisites
 
-- [Poetry](https://python-poetry.org/) for dependency management
-- Docker for running test databases (used by some tests)
+- [UV](https://docs.astral.sh/uv/) for dependency management
+- Docker for running test databases (storer tests start/stop Virtuoso containers automatically via pytest fixtures)
 
 ### Setup
 
-1. Clone the repository and install dependencies:
-   ```bash
-   git clone https://github.com/opencitations/rdflib-ocdm.git
-   cd rdflib-ocdm
-   poetry install --with dev
-   ```
-
-2. Start the test databases (if needed):
-   ```bash
-   # On Linux/macOS
-   ./test/start-test-databases.sh
-   
-   # On Windows
-   .\test\start-test-databases.ps1
-   ```
+```bash
+git clone https://github.com/opencitations/rdflib-ocdm.git
+cd rdflib-ocdm
+uv sync --locked --all-extras --dev
+```
 
 ### Running Tests
 
-Run the tests with coverage:
 ```bash
-poetry run python -m coverage run --rcfile=test/coverage/.coveragerc 
+uv run pytest test/ -v
 ```
 
-Generate and view the coverage report:
+Run with coverage:
 ```bash
-poetry run coverage report  # Console output
-poetry run coverage html    # HTML report (available in htmlcov/ directory)
-```
-
-### Cleanup
-
-After running tests, stop the test databases:
-```bash
-# On Linux/macOS
-./test/stop-test-databases.sh
-
-# On Windows
-.\test\stop-test-databases.ps1
-```
-
-Note: On Linux/macOS, you may need to make the test scripts executable before running them. Use the following command:
-```bash
-chmod +x test/start-test-databases.sh test/stop-test-databases.sh
+uv run coverage run
+uv run coverage report
+uv run coverage html
 ```
 
 ## Contributing

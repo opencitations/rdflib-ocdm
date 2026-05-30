@@ -1,83 +1,63 @@
-#!/usr/bin/env python
-
 # SPDX-FileCopyrightText: 2025 Arcangelo Massari <arcangelo.massari@unibo.it>
 #
 # SPDX-License-Identifier: ISC
 
-import unittest
 from unittest.mock import patch
 
-import fakeredis
+import pytest
 
 from rdflib_ocdm.counter_handler.redis_counter_handler import \
     RedisCounterHandler
 
 
-class TestRedisCounterHandler(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.fake_redis = fakeredis.FakeStrictRedis()
-        
-    def setUp(self):
-        self.fake_redis.flushall()
-        self.redis_patcher = patch('redis.Redis', return_value=self.fake_redis)
-        self.mock_redis = self.redis_patcher.start()
-        
-        self.handler = RedisCounterHandler(host='localhost', port=6379, db=0)
-        self.handler.connect()
-    
-    def tearDown(self):
-        self.handler.disconnect()
-        self.redis_patcher.stop()
-    
+class TestRedisCounterHandler:
+    @pytest.fixture(autouse=True)
+    def setup(self, fake_redis):
+        fake_redis.flushall()
+        self.fake_redis = fake_redis
+        with patch('redis.Redis', return_value=fake_redis):
+            self.handler = RedisCounterHandler(host='localhost', port=6379, db=0)
+            self.handler.connect()
+            yield
+            self.handler.disconnect()
+
     def test_set_counter_valid_value(self):
-        """Test setting a valid counter value"""
         self.handler.set_counter(10, 'test_entity')
         result = self.fake_redis.get('test_entity')
-        self.assertEqual(int(result), 10)  # type: ignore[arg-type]
-    
+        assert int(result) == 10  # type: ignore[arg-type]
+
     def test_set_counter_negative_value(self):
-        """Test that setting a negative value raises ValueError"""
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             self.handler.set_counter(-1, 'test_entity')
-    
+
     def test_read_counter_existing(self):
-        """Test reading an existing counter"""
         self.fake_redis.set('test_entity', 5)
         result = self.handler.read_counter('test_entity')
-        self.assertEqual(result, 5)
-    
+        assert result == 5
+
     def test_read_counter_nonexistent(self):
-        """Test reading a non-existent counter returns 0"""
         result = self.handler.read_counter('nonexistent_entity')
-        self.assertEqual(result, 0)
-    
+        assert result == 0
+
     def test_increment_counter_new(self):
-        """Test incrementing a new counter starts at 1"""
         result = self.handler.increment_counter('new_entity')
-        self.assertEqual(result, 1)
-        self.assertEqual(int(self.fake_redis.get('new_entity')), 1)  # type: ignore[arg-type]
-    
+        assert result == 1
+        assert int(self.fake_redis.get('new_entity')) == 1  # type: ignore[arg-type]
+
     def test_increment_counter_existing(self):
-        """Test incrementing an existing counter"""
         self.fake_redis.set('existing_entity', 5)
         result = self.handler.increment_counter('existing_entity')
-        self.assertEqual(result, 6)
-        self.assertEqual(int(self.fake_redis.get('existing_entity')), 6)  # type: ignore[arg-type]
-    
+        assert result == 6
+        assert int(self.fake_redis.get('existing_entity')) == 6  # type: ignore[arg-type]
+
     def test_flush(self):
-        """Test flushing the database"""
         self.fake_redis.set('entity1', 1)
         self.fake_redis.set('entity2', 2)
         self.handler.flush()
-        self.assertIsNone(self.fake_redis.get('entity1'))
-        self.assertIsNone(self.fake_redis.get('entity2'))
-    
+        assert self.fake_redis.get('entity1') is None
+        assert self.fake_redis.get('entity2') is None
+
     def test_disconnect_no_connection(self):
-        """Test disconnecting when no connection exists"""
         handler = RedisCounterHandler(host='localhost', port=6379, db=0)
         handler.disconnect()
         handler.disconnect()
-
-if __name__ == '__main__':
-    unittest.main()
