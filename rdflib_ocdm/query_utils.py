@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from typing import Tuple
@@ -68,12 +68,13 @@ def get_update_query(
 
     if entity_type == "graph":
         assert hasattr(a_set, "entity_index") and hasattr(a_set, "preexisting_graph")
+        graph_set = cast("OCDMGraphCommons", a_set)
         to_be_deleted = (
-            a_set.entity_index[entity]["to_be_deleted"]
-            if entity in a_set.entity_index
+            graph_set.entity_index[entity]["to_be_deleted"]
+            if entity in graph_set.entity_index
             else False
-        )  # type: ignore[union-attr]
-        preexisting_graph = get_entity_subgraph(a_set.preexisting_graph, entity)  # type: ignore[union-attr]
+        )
+        preexisting_graph = get_entity_subgraph(graph_set.preexisting_graph, entity)
 
     if isinstance(a_set, Dataset):
         if hasattr(a_set, "entity_index") and entity in a_set.entity_index:  # type: ignore[operator]

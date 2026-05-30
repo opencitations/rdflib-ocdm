@@ -16,8 +16,9 @@ from rdflib_ocdm.counter_handler.counter_handler import CounterHandler
 
 
 class InMemoryCounterHandler(CounterHandler):
-    """A concrete implementation of the ``CounterHandler`` interface that temporarily stores
-    the counter values in the volatile system memory."""
+    """A concrete implementation of the ``CounterHandler`` interface
+    that temporarily stores the counter values in the volatile system
+    memory."""
 
     def __init__(self) -> None:
         """
@@ -58,7 +59,8 @@ class InMemoryCounterHandler(CounterHandler):
 
     def increment_counter(self, entity_name: str) -> int:
         """
-        It allows to increment the counter value of graph and provenance entities by one unit.
+        It allows to increment the counter value of graph and
+        provenance entities by one unit.
 
         :param entity_name: The entity name
         :type entity_name: str

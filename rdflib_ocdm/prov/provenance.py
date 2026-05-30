@@ -82,7 +82,8 @@ class OCDMProvenance(Dataset):
                 last_snapshot: SnapshotEntity = self.add_se(
                     prov_subject=cur_subj, res=last_snapshot_res
                 )
-                # Non settiamo l'invalidation time per il precedente snapshot in caso di restore
+                # Non settiamo l'invalidation time per il precedente
+                # snapshot in caso di restore
 
                 cur_snapshot: SnapshotEntity = self._create_snapshot(cur_subj, cur_time)
                 cur_snapshot.derives_from(last_snapshot)

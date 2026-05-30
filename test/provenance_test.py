@@ -17,6 +17,10 @@ from rdflib_ocdm.ocdm_graph import OCDMDataset, OCDMGraph
 from rdflib_ocdm.prov.provenance import OCDMProvenance
 from rdflib_ocdm.prov.snapshot_entity import SnapshotEntity
 
+LONG_TITLE = (
+    "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy"
+)
+
 
 class TestOCDMProvenance:
     @pytest.fixture(autouse=True)
@@ -74,9 +78,7 @@ class TestOCDMProvenance:
             (
                 URIRef(self.subject),
                 URIRef("http://purl.org/dc/terms/title"),
-                Literal(
-                    "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy"
-                ),
+                Literal(LONG_TITLE),
             )
         )
         ocdm_graph.add(
@@ -89,10 +91,17 @@ class TestOCDMProvenance:
         ocdm_graph.generate_provenance()
         se_a_2 = ocdm_graph.get_entity(f"{self.subject}/prov/se/2")
         assert se_a_2 is not None
-        assert (
-            se_a_2.get_update_action()
-            == 'DELETE DATA { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy" . }; INSERT DATA { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "Bella zì" . }'
+        expected = (
+            "DELETE DATA {"
+            " <https://w3id.org/oc/meta/br/0605>"
+            " <http://purl.org/dc/terms/title>"
+            f' "{LONG_TITLE}" . '
+            "}; INSERT DATA {"
+            " <https://w3id.org/oc/meta/br/0605>"
+            " <http://purl.org/dc/terms/title>"
+            ' "Bella zì" . }'
         )
+        assert se_a_2.get_update_action() == expected
         assert se_a_2.get_description() == f"The entity '{self.subject}' was modified."
         assert isinstance(ocdm_graph.provenance.counter_handler, InMemoryCounterHandler)
         assert ocdm_graph.provenance.counter_handler.prov_counters == {
@@ -112,9 +121,7 @@ class TestOCDMProvenance:
             (
                 URIRef(self.subject),
                 URIRef("http://purl.org/dc/terms/title"),
-                Literal(
-                    "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy"
-                ),
+                Literal(LONG_TITLE),
             )
         )
         ocdm_conjunctive_graph.add(
@@ -132,10 +139,19 @@ class TestOCDMProvenance:
         assert se_a_2.get_derives_from()[0].res == URIRef(
             "https://w3id.org/oc/meta/br/0605/prov/se/1"
         )
-        assert (
-            se_a_2.get_update_action()
-            == 'DELETE DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy" . } }; INSERT DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "Bella zì" . } }'
+        expected = (
+            "DELETE DATA {"
+            " GRAPH <https://w3id.org/oc/meta/br/> {"
+            " <https://w3id.org/oc/meta/br/0605>"
+            " <http://purl.org/dc/terms/title>"
+            f' "{LONG_TITLE}" . '
+            "} }; INSERT DATA {"
+            " GRAPH <https://w3id.org/oc/meta/br/> {"
+            " <https://w3id.org/oc/meta/br/0605>"
+            " <http://purl.org/dc/terms/title>"
+            ' "Bella zì" . } }'
         )
+        assert se_a_2.get_update_action() == expected
         with open(
             os.path.join("test", "info_dir", "provenance_index.json"),
             "r",
@@ -166,9 +182,7 @@ class TestOCDMProvenance:
                 (
                     URIRef(self.subject),
                     URIRef("http://purl.org/dc/terms/title"),
-                    Literal(
-                        "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy"
-                    ),
+                    Literal(LONG_TITLE),
                 )
             )
             ocdm_conjunctive_graph.add(
@@ -188,10 +202,19 @@ class TestOCDMProvenance:
             assert se_a_2.get_derives_from()[0].res == URIRef(
                 "https://w3id.org/oc/meta/br/0605/prov/se/1"
             )
-            assert (
-                se_a_2.get_update_action()
-                == 'DELETE DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy" . } }; INSERT DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "Bella zì" . } }'
+            expected = (
+                "DELETE DATA {"
+                " GRAPH <https://w3id.org/oc/meta/br/> {"
+                " <https://w3id.org/oc/meta/br/0605>"
+                " <http://purl.org/dc/terms/title>"
+                f' "{LONG_TITLE}" . '
+                "} }; INSERT DATA {"
+                " GRAPH <https://w3id.org/oc/meta/br/> {"
+                " <https://w3id.org/oc/meta/br/0605>"
+                " <http://purl.org/dc/terms/title>"
+                ' "Bella zì" . } }'
             )
+            assert se_a_2.get_update_action() == expected
         finally:
             counter_handler.close()
 
@@ -208,9 +231,11 @@ class TestOCDMProvenance:
             "https://w3id.org/oc/meta/id/0605/prov/se/2"
         )
         assert se_a_2 is not None
-        assert (
-            se_a_2.get_description()
-            == "The entity 'https://w3id.org/oc/meta/id/0605' was merged with 'https://w3id.org/oc/meta/id/0636064270'."
+        assert se_a_2.get_description() == (
+            "The entity"
+            " 'https://w3id.org/oc/meta/id/0605'"
+            " was merged with"
+            " 'https://w3id.org/oc/meta/id/0636064270'."
         )
         assert se_a_2.get_update_action() is None
         assert {str(se.res) for se in se_a_2.get_derives_from()} == {
@@ -241,10 +266,19 @@ class TestOCDMProvenance:
             se_br_2.get_description()
             == "The entity 'https://w3id.org/oc/meta/br/0636066666' was modified."
         )
-        assert (
-            se_br_2.get_update_action()
-            == "DELETE DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0636066666> <http://purl.org/spar/datacite/hasIdentifier> <https://w3id.org/oc/meta/id/0636064270> . } }; INSERT DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0636066666> <http://purl.org/spar/datacite/hasIdentifier> <https://w3id.org/oc/meta/id/0605> . } }"
+        expected = (
+            "DELETE DATA {"
+            " GRAPH <https://w3id.org/oc/meta/br/> {"
+            " <https://w3id.org/oc/meta/br/0636066666>"
+            " <http://purl.org/spar/datacite/hasIdentifier>"
+            " <https://w3id.org/oc/meta/id/0636064270>"
+            " . } }; INSERT DATA {"
+            " GRAPH <https://w3id.org/oc/meta/br/> {"
+            " <https://w3id.org/oc/meta/br/0636066666>"
+            " <http://purl.org/spar/datacite/hasIdentifier>"
+            " <https://w3id.org/oc/meta/id/0605> . } }"
         )
+        assert se_br_2.get_update_action() == expected
         assert se_a_2.get_derives_from()[0].res == URIRef(
             "https://w3id.org/oc/meta/id/0605/prov/se/1"
         )
@@ -264,10 +298,15 @@ class TestOCDMProvenance:
             se_id_0636064270_2.get_description()
             == "The entity 'https://w3id.org/oc/meta/id/0636064270' has been deleted."
         )
-        assert (
-            se_id_0636064270_2.get_update_action()
-            == "DELETE DATA { GRAPH <https://w3id.org/oc/meta/id/> { <https://w3id.org/oc/meta/id/0636064270> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/spar/datacite/Identifier> . } }"
+        expected = (
+            "DELETE DATA {"
+            " GRAPH <https://w3id.org/oc/meta/id/> {"
+            " <https://w3id.org/oc/meta/id/0636064270>"
+            " <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+            " <http://purl.org/spar/datacite/Identifier>"
+            " . } }"
         )
+        assert se_id_0636064270_2.get_update_action() == expected
 
     def test_restore_deleted_entity(self):
         ocdm_graph = OCDMGraph()

@@ -14,16 +14,19 @@ from rdflib_ocdm.support import is_string_empty
 
 
 class FilesystemCounterHandler(CounterHandler):
-    """A concrete implementation of the ``CounterHandler`` interface that persistently stores
-    the counter values within the filesystem."""
+    """A concrete implementation of the ``CounterHandler`` interface
+    that persistently stores the counter values within the
+    filesystem."""
 
     def __init__(self, info_dir: str) -> None:
         """
         Constructor of the ``FilesystemCounterHandler`` class.
 
-        :param info_dir: The path to the folder that does/will contain the counter values.
+        :param info_dir: The path to the folder that does/will
+          contain the counter values.
         :type info_dir: str
-        :raises ValueError: if ``info_dir`` is None or an empty string.
+        :raises ValueError: if ``info_dir`` is None or an empty
+          string.
         """
         if info_dir is None or is_string_empty(info_dir):
             raise ValueError("info_dir parameter is required!")

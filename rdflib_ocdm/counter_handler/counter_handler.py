@@ -13,8 +13,8 @@ class CounterHandler(ABC):  # pragma: no cover
     @abstractmethod
     def set_counter(self, new_value: int, entity_name: str) -> None:
         """
-        Method signature for concrete implementations that allow setting the counter value
-        of provenance entities.
+        Method signature for concrete implementations that allow
+        setting the counter value of provenance entities.
 
         :param new_value: The new counter value to be set
         :type new_value: int
@@ -28,8 +28,8 @@ class CounterHandler(ABC):  # pragma: no cover
     @abstractmethod
     def read_counter(self, entity_name: str) -> int:
         """
-        Method signature for concrete implementations that allow reading the counter value
-        of graph and provenance entities.
+        Method signature for concrete implementations that allow
+        reading the counter value of graph and provenance entities.
 
         :param entity_name: The entity name
         :type entity_name: str
@@ -41,8 +41,9 @@ class CounterHandler(ABC):  # pragma: no cover
     @abstractmethod
     def increment_counter(self, entity_name: str) -> int:
         """
-        Method signature for concrete implementations that allow incrementing by one unit
-        the counter value of graph and provenance entities.
+        Method signature for concrete implementations that allow
+        incrementing by one unit the counter value of graph and
+        provenance entities.
 
         :param entity_name: The entity name
         :type entity_name: str

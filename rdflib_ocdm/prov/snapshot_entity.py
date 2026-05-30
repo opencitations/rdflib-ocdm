@@ -37,13 +37,16 @@ class SnapshotEntity(ProvEntity):
         """
         Setter method corresponding to the ``prov:generatedAtTime`` RDF predicate.
 
-        **WARNING: this is a functional property, hence any existing value will be overwritten!**
+        **WARNING: this is a functional property, hence
+        any existing value will be overwritten!**
 
-        `The date on which a particular snapshot of a bibliographic entity's metadata was
-        created.`
+        `The date on which a particular snapshot of a
+        bibliographic entity's metadata was created.`
 
-        :param string: The value that will be set as the object of the property related to this method. **It must
-          be a string compliant with the** ``xsd:dateTime`` **datatype.**
+        :param string: The value that will be set as the
+          object of the property related to this method.
+          **It must be a string compliant with the**
+          ``xsd:dateTime`` **datatype.**
         :type string: str
         :raises TypeError: if the parameter is of the wrong type
         :return: None
@@ -73,14 +76,20 @@ class SnapshotEntity(ProvEntity):
         """
         Setter method corresponding to the ``prov:invalidatedAtTime`` RDF predicate.
 
-        **WARNING: this is a functional property, hence any existing value will be overwritten!**
+        **WARNING: this is a functional property, hence
+        any existing value will be overwritten!**
 
-        `The date on which a snapshot of a bibliographic entity's metadata was invalidated due
-        to an update (e.g. a correction, or the addition of some metadata that was not specified
-        in the previous snapshot), or due to a merger of the entity with another one.`
+        `The date on which a snapshot of a bibliographic
+        entity's metadata was invalidated due to an
+        update (e.g. a correction, or the addition of
+        some metadata that was not specified in the
+        previous snapshot), or due to a merger of the
+        entity with another one.`
 
-        :param string: The value that will be set as the object of the property related to this method. **It must
-          be a string compliant with the** ``xsd:dateTime`` **datatype.**
+        :param string: The value that will be set as the
+          object of the property related to this method.
+          **It must be a string compliant with the**
+          ``xsd:dateTime`` **datatype.**
         :type string: str
         :raises TypeError: if the parameter is of the wrong type
         :return: None
@@ -112,12 +121,16 @@ class SnapshotEntity(ProvEntity):
         """
         Setter method corresponding to the ``prov:specializationOf`` RDF predicate.
 
-        **WARNING: this is a functional property, hence any existing value will be overwritten!**
+        **WARNING: this is a functional property, hence
+        any existing value will be overwritten!**
 
-        `This property is used to link a snapshot of entity metadata to the bibliographic entity
+        `This property is used to link a snapshot of
+        entity metadata to the bibliographic entity
         to which the snapshot refers.`
 
-        :param en_res: The value that will be set as the object of the property related to this method
+        :param en_res: The value that will be set as
+          the object of the property related to this
+          method
         :type en_res: URIRef
         :return: None
         """
@@ -152,10 +165,13 @@ class SnapshotEntity(ProvEntity):
         """
         Setter method corresponding to the ``prov:wasDerivedFrom`` RDF predicate.
 
-        `This property is used to identify the immediately previous snapshot of entity metadata
+        `This property is used to identify the
+        immediately previous snapshot of entity metadata
         associated with the same bibliographic entity.`
 
-        :param se_res: The value that will be set as the object of the property related to this method
+        :param se_res: The value that will be set as
+          the object of the property related to this
+          method
         :type se_res: ProvEntity
         :raises TypeError: if the parameter is of the wrong type
         :return: None
@@ -169,7 +185,8 @@ class SnapshotEntity(ProvEntity):
         **WARNING: this is a non-functional property, hence, if the parameter
         is None, any existing value will be removed!**
 
-        :param se_res: If not None, the specific object value that will be removed from the property
+        :param se_res: If not None, the specific object
+         value that will be removed from the property
          related to this method (defaults to None)
         :type se_res: SnapshotEntity
         :raises TypeError: if the parameter is of the wrong type
@@ -197,13 +214,17 @@ class SnapshotEntity(ProvEntity):
         """
         Setter method corresponding to the ``prov:hadPrimarySource`` RDF predicate.
 
-        **WARNING: this is a functional property, hence any existing value will be overwritten!**
+        **WARNING: this is a functional property, hence
+        any existing value will be overwritten!**
 
-        `This property is used to identify the primary source from which the metadata
-        described in the snapshot are derived (e.g. Crossref, as the result of querying the
-        CrossRef API).`
+        `This property is used to identify the primary
+        source from which the metadata described in the
+        snapshot are derived (e.g. Crossref, as the
+        result of querying the CrossRef API).`
 
-        :param any_res: The value that will be set as the object of the property related to this method
+        :param any_res: The value that will be set as
+          the object of the property related to this
+          method
         :type any_res: URIRef
         :return: None
         """
@@ -232,13 +253,19 @@ class SnapshotEntity(ProvEntity):
         """
         Setter method corresponding to the ``oco:hasUpdateQuery`` RDF predicate.
 
-        **WARNING: this is a functional property, hence any existing value will be overwritten!**
+        **WARNING: this is a functional property, hence
+        any existing value will be overwritten!**
 
-        `The UPDATE SPARQL query that specifies which data, associated to the bibliographic
-        entity in consideration, have been modified (e.g. for correcting a mistake) in the
-        current snapshot starting from those associated to the previous snapshot of the entity.`
+        `The UPDATE SPARQL query that specifies which
+        data, associated to the bibliographic entity in
+        consideration, have been modified (e.g. for
+        correcting a mistake) in the current snapshot
+        starting from those associated to the previous
+        snapshot of the entity.`
 
-        :param string: The value that will be set as the object of the property related to this method
+        :param string: The value that will be set as
+          the object of the property related to this
+          method
         :type string: str
         :return: None
         """
@@ -267,15 +294,21 @@ class SnapshotEntity(ProvEntity):
         """
         Setter method corresponding to the ``dcterms:description`` RDF predicate.
 
-        **WARNING: this is a functional property, hence any existing value will be overwritten!**
+        **WARNING: this is a functional property, hence
+        any existing value will be overwritten!**
 
-        `A textual description of the events that have resulted in the current snapshot (e.g. the
-        creation of the initial snapshot, the creation of a new snapshot following the
-        modification of the entity to which the metadata relate, or the creation of a new
-        snapshot following the merger with another entity of the entity to which the previous
-        snapshot related).`
+        `A textual description of the events that have
+        resulted in the current snapshot (e.g. the
+        creation of the initial snapshot, the creation
+        of a new snapshot following the modification of
+        the entity to which the metadata relate, or the
+        creation of a new snapshot following the merger
+        with another entity of the entity to which the
+        previous snapshot related).`
 
-        :param string: The value that will be set as the object of the property related to this method
+        :param string: The value that will be set as
+          the object of the property related to this
+          method
         :type string: str
         :return: None
         """
@@ -307,11 +340,15 @@ class SnapshotEntity(ProvEntity):
         """
         Setter method corresponding to the ``prov:wasAttributedTo`` RDF predicate.
 
-        **WARNING: this is a functional property, hence any existing value will be overwritten!**
+        **WARNING: this is a functional property, hence
+        any existing value will be overwritten!**
 
-        `The agent responsible for the creation of the current entity snapshot.`
+        `The agent responsible for the creation of the
+        current entity snapshot.`
 
-        :param se_agent: The value that will be set as the object of the property related to this method
+        :param se_agent: The value that will be set as
+          the object of the property related to this
+          method
         :type se_agent: URIRef
         :return: None
         """

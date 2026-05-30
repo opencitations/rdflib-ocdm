@@ -55,9 +55,11 @@ class AbstractEntity(ABC):  # pragma: no cover
         """
         Setter method corresponding to the ``rdfs:label`` RDF predicate.
 
-        **WARNING: this is a functional property, hence any existing value will be overwritten!**
+        **WARNING: this is a functional property, hence any existing
+        value will be overwritten!**
 
-        :param string: The value that will be set as the object of the property related to this method
+        :param string: The value that will be set as the object of the
+          property related to this method
         :type string: str
         :return: None
         """
@@ -104,7 +106,8 @@ class AbstractEntity(ABC):  # pragma: no cover
         """
         Setter method corresponding to the ``rdf:type`` RDF predicate.
 
-        :param res_type: The value that will be set as the object of the property related to this method
+        :param res_type: The value that will be set as the object of
+          the property related to this method
         :type res_type: URIRef
         :return: None
         """
@@ -124,24 +127,24 @@ class AbstractEntity(ABC):  # pragma: no cover
 
     def add_triples(self, iterable_of_triples: Iterable) -> None:
         """
-        A utility method that allows to add a batch of triples into the graph of the entity.
+        A utility method that allows to add a batch of triples into
+        the graph of the entity.
 
-        **WARNING: Only triples that have this entity as their subject will be imported!**
+        **WARNING: Only triples that have this entity as their subject
+        will be imported!**
 
         :param iterable_of_triples: A collection of triples to be added to the entity
         :type iterable_of_triples: Iterable
         :return: None
         """
         for s, p, o in iterable_of_triples:
-            if (
-                s == self.res
-            ):  # This guarantees that only triples belonging to the resource will be added
+            if s == self.res:
                 self.g.add((s, p, o))
 
     def _get_literal(self, predicate: URIRef) -> Optional[str]:
         result: Optional[str] = None
         for o in self.g.objects(self.res, predicate):
-            if type(o) == Literal:
+            if isinstance(o, Literal):
                 result = str(o)
                 break
         return result
@@ -149,14 +152,14 @@ class AbstractEntity(ABC):  # pragma: no cover
     def _get_multiple_literals(self, predicate: URIRef) -> List[str]:
         result: List[str] = []
         for o in self.g.objects(self.res, predicate):
-            if type(o) == Literal:
+            if isinstance(o, Literal):
                 result.append(str(o))
         return result
 
     def _get_uri_reference(self, predicate: URIRef) -> Optional[URIRef]:
         result: Optional[URIRef] = None
         for o in self.g.objects(self.res, predicate):
-            if type(o) == URIRef:
+            if isinstance(o, URIRef):
                 result = o
                 break
         return result
@@ -164,6 +167,6 @@ class AbstractEntity(ABC):  # pragma: no cover
     def _get_multiple_uri_references(self, predicate: URIRef) -> List[URIRef]:
         result: List[URIRef] = []
         for o in self.g.objects(self.res, predicate):
-            if type(o) == URIRef:
+            if isinstance(o, URIRef):
                 result.append(o)
         return result

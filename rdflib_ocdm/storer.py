@@ -92,7 +92,8 @@ class Storer:
             except ValueError as e:
                 # Handle the case when all retries failed
                 self.reperr.add_sentence(
-                    f"[3] Graph was not loaded into the triplestore due to communication problems: {e}"
+                    "[3] Graph was not loaded into the triplestore"
+                    f" due to communication problems: {e}"
                 )
                 if base_dir is not None:
                     tp_err_dir: str = base_dir + os.sep + "tp_err"

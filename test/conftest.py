@@ -11,7 +11,10 @@ import fakeredis
 import pytest
 from SPARQLWrapper import JSON, POST, SPARQLWrapper
 
-VIRTUOSO_IMAGE = "openlink/virtuoso-opensource-7@sha256:c08d54120b8085234f8244951232553428e235543412e41d75705736a3026f1b"
+VIRTUOSO_IMAGE = (
+    "openlink/virtuoso-opensource-7"
+    "@sha256:c08d54120b8085234f8244951232553428e235543412e41d75705736a3026f1b"
+)
 DATASET_CONTAINER = "rdflib_ocdm_dataset_db"
 PROV_CONTAINER = "rdflib_ocdm_provenance_db"
 NETWORK = "virtuoso-net"
@@ -154,7 +157,8 @@ def sparql_wrapper(virtuoso_databases, reset_server):
                 time.sleep(wait_time)
             else:
                 raise Exception(
-                    f"Failed to connect to triplestore after {max_retries} attempts: {e}"
+                    f"Failed to connect to triplestore"
+                    f" after {max_retries} attempts: {e}"
                 )
     return ts
 

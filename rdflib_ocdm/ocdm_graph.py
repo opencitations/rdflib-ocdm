@@ -181,14 +181,8 @@ class OCDMGraphCommons:
         prov_g = Dataset()
         for _, prov_entity in self.provenance.res_to_entity.items():
             for triple in prov_entity.g.triples((None, None, None)):
-                prov_g.add(
-                    (
-                        triple[0],
-                        triple[1],
-                        triple[2],
-                        URIRef(prov_entity.prov_subject + "/prov/"),
-                    )
-                )  # type: ignore[arg-type]
+                prov_iri = URIRef(prov_entity.prov_subject + "/prov/")
+                prov_g.add((triple[0], triple[1], triple[2], prov_iri))  # type: ignore[arg-type]
         return prov_g
 
 
@@ -266,9 +260,10 @@ class OCDMGraph(OCDMGraphCommons, Graph):
         except SyntaxError as se:
             if could_not_guess_format:
                 raise ParserError(
-                    "Could not guess RDF format for %r from file extension so tried Turtle but failed."
-                    "You can explicitly specify format using the format argument."
-                    % source
+                    "Could not guess RDF format for %r from file"
+                    " extension so tried Turtle but failed."
+                    " You can explicitly specify format using"
+                    " the format argument." % source
                 )
             else:
                 raise se
@@ -324,8 +319,11 @@ class OCDMDataset(OCDMGraphCommons, Dataset):
 
         _assertnode(s, p, o)
 
-        # type error: Argument "context" to "add" of "Store" has incompatible type "Optional[Graph]"; expected "Graph"
-        self.store.add((s, p, o), context=c, quoted=False)  # type: ignore[arg-type]
+        self.store.add(
+            (s, p, o),
+            context=c,  # type: ignore[arg-type]
+            quoted=False,
+        )
 
         # Add the subject to all_entities if it's not already present
         if s not in self.all_entities:

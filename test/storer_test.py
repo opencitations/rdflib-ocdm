@@ -14,6 +14,10 @@ from rdflib import Graph, Literal, URIRef
 from rdflib_ocdm.ocdm_graph import OCDMDataset, OCDMGraph
 from rdflib_ocdm.storer import Storer
 
+LONG_TITLE = (
+    "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy"
+)
+
 
 class TestStorer:
     endpoint = "http://localhost:8890/sparql"
@@ -61,7 +65,7 @@ class TestStorer:
             (
                 "https://w3id.org/oc/meta/br/0605",
                 "http://purl.org/dc/terms/title",
-                "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy",
+                LONG_TITLE,
             ),
         }
         assert results == expected_results
@@ -70,9 +74,7 @@ class TestStorer:
             (
                 URIRef(self.subject),
                 URIRef("http://purl.org/dc/terms/title"),
-                Literal(
-                    "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy"
-                ),
+                Literal(LONG_TITLE),
                 Graph(identifier=URIRef("https://w3id.org/oc/meta/br/")),
             )
         )
@@ -130,9 +132,7 @@ class TestStorer:
             (
                 URIRef(self.subject),
                 URIRef("http://purl.org/dc/terms/title"),
-                Literal(
-                    "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy"
-                ),
+                Literal(LONG_TITLE),
                 Graph(identifier=URIRef("https://w3id.org/oc/meta/br/")),
             )
         )
@@ -206,7 +206,16 @@ class TestStorer:
                 "https://w3id.org/oc/meta/br/0605/prov/",
                 "https://w3id.org/oc/meta/br/0605/prov/se/2",
                 "https://w3id.org/oc/ontology/hasUpdateQuery",
-                'DELETE DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy" . } }; INSERT DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "Bella zì" . } }',
+                "DELETE DATA {"
+                " GRAPH <https://w3id.org/oc/meta/br/> {"
+                " <https://w3id.org/oc/meta/br/0605>"
+                " <http://purl.org/dc/terms/title>"
+                f' "{LONG_TITLE}" . '
+                "} }; INSERT DATA {"
+                " GRAPH <https://w3id.org/oc/meta/br/> {"
+                " <https://w3id.org/oc/meta/br/0605>"
+                " <http://purl.org/dc/terms/title>"
+                ' "Bella zì" . } }',
             ),
             (
                 "https://w3id.org/oc/meta/br/0605/prov/",
