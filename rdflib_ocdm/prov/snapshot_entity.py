@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from oc_ocdm.decorators import accepts_only
 from rdflib import XSD, URIRef
 
 from rdflib_ocdm.prov.prov_entity import ProvEntity
@@ -32,7 +31,6 @@ class SnapshotEntity(ProvEntity):
         """
         return self._get_literal(ProvEntity.iri_generated_at_time)
 
-    @accepts_only("literal")
     def has_generation_time(self, string: str) -> None:
         """
         Setter method corresponding to the ``prov:generatedAtTime`` RDF predicate.
@@ -71,7 +69,6 @@ class SnapshotEntity(ProvEntity):
         """
         return self._get_literal(ProvEntity.iri_invalidated_at_time)
 
-    @accepts_only("literal")
     def has_invalidation_time(self, string: str) -> None:
         """
         Setter method corresponding to the ``prov:invalidatedAtTime`` RDF predicate.
@@ -209,7 +206,6 @@ class SnapshotEntity(ProvEntity):
         )
         return uri
 
-    @accepts_only("thing")
     def has_primary_source(self, any_res: URIRef) -> None:
         """
         Setter method corresponding to the ``prov:hadPrimarySource`` RDF predicate.
@@ -248,7 +244,6 @@ class SnapshotEntity(ProvEntity):
         """
         return self._get_literal(ProvEntity.iri_has_update_query)
 
-    @accepts_only("literal")
     def has_update_action(self, string: str) -> None:
         """
         Setter method corresponding to the ``oco:hasUpdateQuery`` RDF predicate.
@@ -289,7 +284,6 @@ class SnapshotEntity(ProvEntity):
         """
         return self._get_literal(ProvEntity.iri_description)
 
-    @accepts_only("literal")
     def has_description(self, string: str) -> None:
         """
         Setter method corresponding to the ``dcterms:description`` RDF predicate.
@@ -335,7 +329,6 @@ class SnapshotEntity(ProvEntity):
         )
         return uri
 
-    @accepts_only("thing")
     def has_resp_agent(self, se_agent: URIRef) -> None:
         """
         Setter method corresponding to the ``prov:wasAttributedTo`` RDF predicate.

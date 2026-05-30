@@ -206,8 +206,8 @@ class TestReader:
     def test_import_entities_invalid_graph_type(self):
         with pytest.raises(TypeError) as exc_info:
             self.reader.import_entities_from_triplestore(
-                "not_a_graph", self.ts_url, self.res_list
-            )  # type: ignore[arg-type]
+                "not_a_graph", self.ts_url, self.res_list  # pyright: ignore[reportArgumentType]
+            )
         assert "must be either OCDMGraph or OCDMDataset" in str(exc_info.value)
 
     @patch("rdflib_ocdm.reader.SPARQLWrapper")
