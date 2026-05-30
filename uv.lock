@@ -733,7 +733,7 @@ html = [
 
 [[package]]
 name = "rdflib-ocdm"
-version = "1.0.7"
+version = "2.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "oc-ocdm" },

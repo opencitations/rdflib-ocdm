@@ -1,6 +1,6 @@
 [project]
 name = "rdflib-ocdm"
-version = "1.0.7"
+version = "2.0.0"
 description = ""
 authors = [{name = "Arcangelo Massari", email = "arcangelo.massari@unibo.it"}]
 license = "ISC"

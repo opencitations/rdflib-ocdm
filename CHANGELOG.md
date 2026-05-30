@@ -1,3 +1,21 @@
+# [2.0.0](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.7...v2.0.0) (2026-05-30)
+
+
+* build!: drop Python 3.9 support ([916ddb0](https://github.com/opencitations/rdflib-ocdm/commit/916ddb0cc559b09ed760a1dc17b1d3759285bf27))
+
+
+### Bug Fixes
+
+* add proper resource cleanup for SQLite database connections in SqliteCounterHandler and update rdflib to 7.4.0 ([0656b40](https://github.com/opencitations/rdflib-ocdm/commit/0656b40d38347088964d260ef4e88ffb8e5d5085))
+* enforce ruff linting [release] ([36d72e5](https://github.com/opencitations/rdflib-ocdm/commit/36d72e5d3a10cc0b32ec471463cff01d5283ec58))
+* upgrade oc-ocdm from 9.x to 11.x [release] ([0bdcd83](https://github.com/opencitations/rdflib-ocdm/commit/0bdcd83a74164ee401cbcaa7d1716abede9d226f))
+
+
+### BREAKING CHANGES
+
+* projects running on Python 3.9 must upgrade
+to Python 3.10 or later.
+
 <!--
 SPDX-FileCopyrightText: 2025 Arcangelo Massari <arcangelo.massari@unibo.it>
 
