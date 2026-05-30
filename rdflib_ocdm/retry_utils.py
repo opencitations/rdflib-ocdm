@@ -14,7 +14,7 @@ T = TypeVar('T')
 
 
 def execute_with_retry(func: Callable[..., T], *args: object, max_retries: int = 5,
-                      base_wait_time: int = 1, reporter: object | None = None, **kwargs: object) -> T:
+                      base_wait_time: float = 1, reporter: object | None = None, **kwargs: object) -> T:
     """
     A function that executes the given function with retry logic and exponential backoff.
     This is useful when you can't use the decorator directly.

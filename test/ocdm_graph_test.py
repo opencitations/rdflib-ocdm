@@ -77,12 +77,16 @@ class TestOCDMGraph(unittest.TestCase):
 
         # Check that provenance was created for both entities
         se_a_2 = ocdm_graph.get_entity(f'{entity_a}/prov/se/2')
-        self.assertIsNotNone(se_a_2)
-        self.assertIn('merged', se_a_2.get_description().lower())
+        assert se_a_2 is not None
+        description_a = se_a_2.get_description()
+        assert description_a is not None
+        self.assertIn('merged', description_a.lower())
 
         se_b_2 = ocdm_graph.get_entity(f'{entity_b}/prov/se/2')
-        self.assertIsNotNone(se_b_2)
-        self.assertTrue(se_b_2.get_description().endswith('has been deleted.'))
+        assert se_b_2 is not None
+        description_b = se_b_2.get_description()
+        assert description_b is not None
+        self.assertTrue(description_b.endswith('has been deleted.'))
 
     def test_merge_graph_object_not_in_index(self):
         """Test merge when merged entity is not in entity_index"""

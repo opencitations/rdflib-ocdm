@@ -20,7 +20,7 @@ def _get_match(regex: str, group: int, string: str) -> str:
     else:
         return ""
 
-def is_string_empty(string: str) -> bool:
+def is_string_empty(string: str | None) -> bool:
     return string is None or string.strip() == ""
 
 def get_prov_count(res: URIRef) -> Optional[str]:
@@ -40,7 +40,7 @@ def get_entity_subgraph(graph: Dataset | Graph, entity: URIRef) -> Dataset | Gra
         subj_graph_g.add(triple)
     return subj_graph_g
 
-def create_literal(g: Graph, res: URIRef, p: URIRef, s: str, dt: URIRef | None = None, nor: bool = True) -> None:
+def create_literal(g: Graph, res: URIRef, p: URIRef, s: str | None, dt: URIRef | None = None, nor: bool = True) -> None:
     if not is_string_empty(s):
         datatype = dt if dt is not None else XSD.string
         g.add((res, p, Literal(s, datatype=datatype, normalize=nor)))

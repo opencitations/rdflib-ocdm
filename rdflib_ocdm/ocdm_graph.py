@@ -43,7 +43,7 @@ class OCDMGraphCommons:
         self.all_entities: set = set()
         self.provenance = OCDMProvenance(self, counter_handler)
 
-    def preexisting_finished(self, resp_agent: str | None = None, primary_source: str | None = None, c_time: str | None = None) -> None:
+    def preexisting_finished(self, resp_agent: str | None = None, primary_source: str | None = None, c_time: float | str | None = None) -> None:
         assert isinstance(self, (Graph, Dataset))
         self.preexisting_graph = deepcopy(self)
 

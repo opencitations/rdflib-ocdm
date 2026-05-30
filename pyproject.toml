@@ -26,7 +26,6 @@ dev = [
 [tool.pyright]
 pythonVersion = "3.10"
 typeCheckingMode = "standard"
-exclude = ["test"]
 
 [build-system]
 requires = ["hatchling"]

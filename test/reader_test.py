@@ -18,7 +18,7 @@ class TestReader(unittest.TestCase):
         """Set up test fixtures."""
         self.reader = Reader()
         self.ts_url = "http://example.org/sparql"
-        self.res_list = ["http://example.org/res1", "http://example.org/res2"]
+        self.res_list = [URIRef("http://example.org/res1"), URIRef("http://example.org/res2")]
     
     def test_init_with_reporters(self):
         """Test initialization with custom reporters."""
@@ -180,7 +180,7 @@ class TestReader(unittest.TestCase):
     def test_import_entities_invalid_graph_type(self):
         """Test behavior when an invalid graph type is provided."""
         with self.assertRaises(TypeError) as context:
-            self.reader.import_entities_from_triplestore("not_a_graph", self.ts_url, self.res_list)
+            self.reader.import_entities_from_triplestore("not_a_graph", self.ts_url, self.res_list)  # type: ignore[arg-type]
         self.assertIn("must be either OCDMGraph or OCDMDataset", str(context.exception))
     
     @patch('rdflib_ocdm.reader.SPARQLWrapper')

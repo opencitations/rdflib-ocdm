@@ -34,7 +34,7 @@ class TestRedisCounterHandler(unittest.TestCase):
         """Test setting a valid counter value"""
         self.handler.set_counter(10, 'test_entity')
         result = self.fake_redis.get('test_entity')
-        self.assertEqual(int(result), 10)
+        self.assertEqual(int(result), 10)  # type: ignore[arg-type]
     
     def test_set_counter_negative_value(self):
         """Test that setting a negative value raises ValueError"""
@@ -56,14 +56,14 @@ class TestRedisCounterHandler(unittest.TestCase):
         """Test incrementing a new counter starts at 1"""
         result = self.handler.increment_counter('new_entity')
         self.assertEqual(result, 1)
-        self.assertEqual(int(self.fake_redis.get('new_entity')), 1)
+        self.assertEqual(int(self.fake_redis.get('new_entity')), 1)  # type: ignore[arg-type]
     
     def test_increment_counter_existing(self):
         """Test incrementing an existing counter"""
         self.fake_redis.set('existing_entity', 5)
         result = self.handler.increment_counter('existing_entity')
         self.assertEqual(result, 6)
-        self.assertEqual(int(self.fake_redis.get('existing_entity')), 6)
+        self.assertEqual(int(self.fake_redis.get('existing_entity')), 6)  # type: ignore[arg-type]
     
     def test_flush(self):
         """Test flushing the database"""

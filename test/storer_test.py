@@ -99,10 +99,11 @@ class TestStorer(unittest.TestCase):
             }
         '''
         self.ts.setQuery(query)
-        results = self.ts.queryAndConvert()
-        results = {(result['s']['value'], result['p']['value'], result['o']['value']) for result in results['results']['bindings']}
+        raw_results = self.ts.queryAndConvert()
+        assert isinstance(raw_results, dict)
+        results = {(result['s']['value'], result['p']['value'], result['o']['value']) for result in raw_results['results']['bindings']}
         expected_results = {
-            ('https://w3id.org/oc/meta/br/0636066666', 'http://purl.org/dc/terms/title', "Ironing Out Tau'S Role In Parkinsonism"), 
+            ('https://w3id.org/oc/meta/br/0636066666', 'http://purl.org/dc/terms/title', "Ironing Out Tau'S Role In Parkinsonism"),
             ('https://w3id.org/oc/meta/br/0605', 'http://purl.org/dc/terms/title', 'A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy')}
         self.assertEqual(results, expected_results)
         ocdm_graph.commit_changes()
@@ -118,17 +119,18 @@ class TestStorer(unittest.TestCase):
             }
         '''
         self.ts.setQuery(query)
-        results = self.ts.queryAndConvert()
-        results = {(result['s']['value'], result['p']['value'], result['o']['value']) for result in results['results']['bindings']}
+        raw_results = self.ts.queryAndConvert()
+        assert isinstance(raw_results, dict)
+        results = {(result['s']['value'], result['p']['value'], result['o']['value']) for result in raw_results['results']['bindings']}
         expected_results = {
-            ('https://w3id.org/oc/meta/br/0636066666', 'http://purl.org/dc/terms/title', "Ironing Out Tau'S Role In Parkinsonism"), 
+            ('https://w3id.org/oc/meta/br/0636066666', 'http://purl.org/dc/terms/title', "Ironing Out Tau'S Role In Parkinsonism"),
             ('https://w3id.org/oc/meta/br/0605', 'http://purl.org/dc/terms/title', 'Bella zì')}
         self.assertEqual(results, expected_results)
 
     def test_upload_all_provenance(self):
         self.maxDiff = None
         ocdm_graph = OCDMDataset()
-        ocdm_graph.parse(os.path.join('test', 'br_small.nq'), resp_agent='https://orcid.org/0000-0002-8420-0696', primary_source='https://api.crossref.org/')
+        ocdm_graph.parse(os.path.join('test', 'br_small.nq'), resp_agent=URIRef('https://orcid.org/0000-0002-8420-0696'), primary_source=URIRef('https://api.crossref.org/'))
         ocdm_graph.preexisting_finished(resp_agent='https://orcid.org/0000-0002-8420-0696', primary_source='https://api.crossref.org/', c_time=self.cur_time)
         ocdm_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy'), Graph(identifier=URIRef('https://w3id.org/oc/meta/br/'))))
         ocdm_graph.add((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('Bella zì'), Graph(identifier=URIRef('https://w3id.org/oc/meta/br/'))), resp_agent='https://orcid.org/0000-0002-8420-0696', primary_source='https://api.crossref.org/')
@@ -146,8 +148,9 @@ class TestStorer(unittest.TestCase):
             }
         '''
         self.ts.setQuery(query)
-        results = self.ts.queryAndConvert()
-        results = {(result['g']['value'], result['s']['value'], result['p']['value'], result['o']['value']) for result in results['results']['bindings']}
+        raw_results = self.ts.queryAndConvert()
+        assert isinstance(raw_results, dict)
+        results = {(result['g']['value'], result['s']['value'], result['p']['value'], result['o']['value']) for result in raw_results['results']['bindings']}
         expected_result = {
             ('https://w3id.org/oc/meta/br/0605/prov/', 'https://w3id.org/oc/meta/br/0605/prov/se/2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/ns/prov#Entity'), 
             ('https://w3id.org/oc/meta/br/0636066666/prov/', 'https://w3id.org/oc/meta/br/0636066666/prov/se/1', 'http://www.w3.org/ns/prov#generatedAtTime', '2020-12-07T21:17:34Z'), 
@@ -261,8 +264,9 @@ class TestStorer(unittest.TestCase):
             }
         '''
         self.ts.setQuery(query)
-        results = self.ts.queryAndConvert()
-        count = int(results['results']['bindings'][0]['count']['value'])
+        raw_results = self.ts.queryAndConvert()
+        assert isinstance(raw_results, dict)
+        count = int(raw_results['results']['bindings'][0]['count']['value'])
         self.assertEqual(count, 5)
 
     def test_storer_negative_batch_size(self):

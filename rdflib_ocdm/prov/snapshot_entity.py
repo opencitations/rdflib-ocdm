@@ -9,14 +9,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from oc_ocdm.decorators import accepts_only
-from rdflib import XSD
+from rdflib import URIRef, XSD
 
 from rdflib_ocdm.prov.prov_entity import ProvEntity
 
 if TYPE_CHECKING:
     from typing import List, Optional
-
-    from rdflib import URIRef
 
 
 class SnapshotEntity(ProvEntity):

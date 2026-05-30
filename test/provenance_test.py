@@ -12,6 +12,8 @@ from rdflib import Literal, URIRef
 
 from rdflib_ocdm.counter_handler.filesystem_counter_handler import \
     FilesystemCounterHandler
+from rdflib_ocdm.counter_handler.in_memory_counter_handler import \
+    InMemoryCounterHandler
 from rdflib_ocdm.counter_handler.sqlite_counter_handler import \
     SqliteCounterHandler
 from rdflib_ocdm.ocdm_graph import OCDMDataset, OCDMGraph
@@ -49,8 +51,8 @@ class TestOCDMProvenance(unittest.TestCase):
         ocdm_graph.preexisting_finished(resp_agent='https://orcid.org/0000-0002-8420-0696', primary_source='https://api.crossref.org/', c_time=self.cur_time)
         result = ocdm_graph.generate_provenance(c_time=self.cur_time)
         self.assertIsNone(result)
-        se_a: SnapshotEntity = ocdm_graph.get_entity(f'{self.subject}/prov/se/1')
-        self.assertIsNotNone(se_a)
+        se_a = ocdm_graph.get_entity(f'{self.subject}/prov/se/1')
+        assert se_a is not None
         self.assertIsInstance(se_a, SnapshotEntity)
         self.assertEqual(URIRef(self.subject), se_a.get_is_snapshot_of())
         self.assertEqual(self.cur_time_str, se_a.get_generation_time())
@@ -58,14 +60,16 @@ class TestOCDMProvenance(unittest.TestCase):
         self.assertEqual(se_a.get_primary_source(), URIRef('https://api.crossref.org/'))
         self.assertEqual(se_a.get_resp_agent(), URIRef('https://orcid.org/0000-0002-8420-0696'))
         ocdm_graph.generate_provenance(c_time=self.cur_time)
-        se_a_2: SnapshotEntity = ocdm_graph.get_entity(f'{self.subject}/prov/se/2')
+        se_a_2 = ocdm_graph.get_entity(f'{self.subject}/prov/se/2')
         self.assertIsNone(se_a_2)
         ocdm_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy')))
         ocdm_graph.add((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('Bella zì')))
         ocdm_graph.generate_provenance()
-        se_a_2: SnapshotEntity = ocdm_graph.get_entity(f'{self.subject}/prov/se/2')
+        se_a_2 = ocdm_graph.get_entity(f'{self.subject}/prov/se/2')
+        assert se_a_2 is not None
         self.assertEqual(se_a_2.get_update_action(), 'DELETE DATA { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy" . }; INSERT DATA { <https://w3id.org/oc/meta/br/0605> <http://purl.org/dc/terms/title> "Bella zì" . }')
         self.assertEqual(se_a_2.get_description(), f"The entity '{self.subject}' was modified.")
+        assert isinstance(ocdm_graph.provenance.counter_handler, InMemoryCounterHandler)
         self.assertEqual(ocdm_graph.provenance.counter_handler.prov_counters, {self.subject: 2, 'https://w3id.org/oc/meta/br/0636066666': 1})
 
     def test_generate_provenance_modification_ocdm_conjunctive_graph_filesystem_counter(self):
@@ -77,7 +81,8 @@ class TestOCDMProvenance(unittest.TestCase):
         ocdm_conjunctive_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy')))
         ocdm_conjunctive_graph.add((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('Bella zì')))
         ocdm_conjunctive_graph.generate_provenance()
-        se_a_2: SnapshotEntity = ocdm_conjunctive_graph.get_entity(f'{self.subject}/prov/se/2')
+        se_a_2 = ocdm_conjunctive_graph.get_entity(f'{self.subject}/prov/se/2')
+        assert se_a_2 is not None
         self.assertEqual(se_a_2.get_description(), f"The entity '{self.subject}' was modified.")
         self.assertEqual(se_a_2.get_is_snapshot_of(), URIRef(self.subject))
         self.assertEqual(se_a_2.get_derives_from()[0].res, URIRef('https://w3id.org/oc/meta/br/0605/prov/se/1'))
@@ -96,7 +101,8 @@ class TestOCDMProvenance(unittest.TestCase):
             ocdm_conjunctive_graph.remove((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('A Review Of Hemolytic Uremic Syndrome In Patients Treated With Gemcitabine Therapy')))
             ocdm_conjunctive_graph.add((URIRef(self.subject), URIRef('http://purl.org/dc/terms/title'), Literal('Bella zì')))
             ocdm_conjunctive_graph.generate_provenance()
-            se_a_2: SnapshotEntity = ocdm_conjunctive_graph.get_entity(f'{self.subject}/prov/se/2')
+            se_a_2 = ocdm_conjunctive_graph.get_entity(f'{self.subject}/prov/se/2')
+            assert se_a_2 is not None
             self.assertEqual(se_a_2.get_description(), f"The entity '{self.subject}' was modified.")
             self.assertEqual(se_a_2.get_is_snapshot_of(), URIRef(self.subject))
             self.assertEqual(se_a_2.get_derives_from()[0].res, URIRef('https://w3id.org/oc/meta/br/0605/prov/se/1'))
@@ -110,22 +116,26 @@ class TestOCDMProvenance(unittest.TestCase):
         ocdm_conjunctive_graph.preexisting_finished()
         ocdm_conjunctive_graph.merge(URIRef('https://w3id.org/oc/meta/id/0605'), URIRef('https://w3id.org/oc/meta/id/0636064270'))
         ocdm_conjunctive_graph.generate_provenance()
-        se_a_2: SnapshotEntity = ocdm_conjunctive_graph.get_entity(f'https://w3id.org/oc/meta/id/0605/prov/se/2')
-        self.assertIsNotNone(se_a_2)
+        se_a_2 = ocdm_conjunctive_graph.get_entity(f'https://w3id.org/oc/meta/id/0605/prov/se/2')
+        assert se_a_2 is not None
         self.assertEqual(se_a_2.get_description(), "The entity 'https://w3id.org/oc/meta/id/0605' was merged with 'https://w3id.org/oc/meta/id/0636064270'.")
         self.assertIsNone(se_a_2.get_update_action())
         self.assertEqual({str(se.res) for se in se_a_2.get_derives_from()}, {'https://w3id.org/oc/meta/id/0605/prov/se/1', 'https://w3id.org/oc/meta/id/0636064270/prov/se/1'})
-        se_b_1: SnapshotEntity = ocdm_conjunctive_graph.get_entity(f'https://w3id.org/oc/meta/id/0636064270/prov/se/1')
-        self.assertIsNotNone(se_b_1)
+        se_b_1 = ocdm_conjunctive_graph.get_entity(f'https://w3id.org/oc/meta/id/0636064270/prov/se/1')
+        assert se_b_1 is not None
         self.assertEqual(se_b_1.get_description(), "The entity 'https://w3id.org/oc/meta/id/0636064270' has been created.")
         se_br_1 = ocdm_conjunctive_graph.get_entity('https://w3id.org/oc/meta/br/0636066666/prov/se/1')
+        assert se_br_1 is not None
         self.assertEqual(se_br_1.get_description(), "The entity 'https://w3id.org/oc/meta/br/0636066666' has been created.")
         se_br_2 = ocdm_conjunctive_graph.get_entity('https://w3id.org/oc/meta/br/0636066666/prov/se/2')
+        assert se_br_2 is not None
         self.assertEqual(se_br_2.get_description(), "The entity 'https://w3id.org/oc/meta/br/0636066666' was modified.")
         self.assertEqual(se_br_2.get_update_action(), "DELETE DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0636066666> <http://purl.org/spar/datacite/hasIdentifier> <https://w3id.org/oc/meta/id/0636064270> . } }; INSERT DATA { GRAPH <https://w3id.org/oc/meta/br/> { <https://w3id.org/oc/meta/br/0636066666> <http://purl.org/spar/datacite/hasIdentifier> <https://w3id.org/oc/meta/id/0605> . } }")
         self.assertEqual(se_a_2.get_derives_from()[0].res, URIRef('https://w3id.org/oc/meta/id/0605/prov/se/1'))
         se_id_0636064270_1 = ocdm_conjunctive_graph.get_entity(f'https://w3id.org/oc/meta/id/0636064270/prov/se/1')
+        assert se_id_0636064270_1 is not None
         se_id_0636064270_2 = ocdm_conjunctive_graph.get_entity(f'https://w3id.org/oc/meta/id/0636064270/prov/se/2')
+        assert se_id_0636064270_2 is not None
         self.assertEqual(se_id_0636064270_1.get_description(), "The entity 'https://w3id.org/oc/meta/id/0636064270' has been created.")
         self.assertEqual(se_id_0636064270_2.get_description(), "The entity 'https://w3id.org/oc/meta/id/0636064270' has been deleted.")
         self.assertEqual(se_id_0636064270_2.get_update_action(), "DELETE DATA { GRAPH <https://w3id.org/oc/meta/id/> { <https://w3id.org/oc/meta/id/0636064270> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/spar/datacite/Identifier> . } }")
@@ -138,8 +148,8 @@ class TestOCDMProvenance(unittest.TestCase):
         ocdm_graph.preexisting_finished(c_time=self.cur_time)
         
         # Prima otteniamo lo snapshot di creazione
-        initial_snapshot: SnapshotEntity = ocdm_graph.get_entity(f'{self.subject}/prov/se/1')
-        self.assertIsNotNone(initial_snapshot)
+        initial_snapshot = ocdm_graph.get_entity(f'{self.subject}/prov/se/1')
+        assert initial_snapshot is not None
         self.assertEqual(initial_snapshot.get_description(), f"The entity '{self.subject}' has been created.")
         
         # Cancelliamo l'entità e generiamo la provenance
@@ -148,7 +158,8 @@ class TestOCDMProvenance(unittest.TestCase):
         ocdm_graph.generate_provenance(c_time=1607462254.846196)
         
         # Verifichiamo lo snapshot di cancellazione
-        deletion_snapshot: SnapshotEntity = ocdm_graph.get_entity(f'{self.subject}/prov/se/2')
+        deletion_snapshot = ocdm_graph.get_entity(f'{self.subject}/prov/se/2')
+        assert deletion_snapshot is not None
         self.assertEqual(deletion_snapshot.get_generation_time(), deletion_time)
         self.assertEqual(deletion_snapshot.get_invalidation_time(), deletion_time)
         self.assertEqual(deletion_snapshot.get_description(), f"The entity '{self.subject}' has been deleted.")
@@ -163,7 +174,7 @@ class TestOCDMProvenance(unittest.TestCase):
         
         # Verifichiamo lo snapshot di ripristino
         restore_snapshot = ocdm_graph.get_entity(f'{self.subject}/prov/se/3')
-        self.assertIsNotNone(restore_snapshot)
+        assert restore_snapshot is not None
         self.assertEqual(restore_snapshot.get_generation_time(), restore_time)
         self.assertIsNone(restore_snapshot.get_invalidation_time())
         self.assertEqual(restore_snapshot.get_description(), f"The entity '{self.subject}' has been restored.")
@@ -195,12 +206,13 @@ class TestOCDMProvenance(unittest.TestCase):
 
         # Get the deletion snapshot
         deletion_snapshot = ocdm_dataset.get_entity(f'{entity_uri}/prov/se/2')
-        self.assertIsNotNone(deletion_snapshot)
+        assert deletion_snapshot is not None
         self.assertEqual(deletion_snapshot.get_description(), f"The entity '{entity_uri}' has been deleted.")
 
         # Verify that the update action includes the correct GRAPH statement
         # graph_iri is retrieved from entity_index, not dynamically searched
         update_action = deletion_snapshot.get_update_action()
+        assert update_action is not None
         self.assertIn('GRAPH <https://w3id.org/oc/meta/id/>', update_action,
                      "Deletion query should include correct GRAPH statement from entity_index")
         self.assertIn('DELETE DATA', update_action)

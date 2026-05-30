@@ -64,7 +64,7 @@ class TestFilesystemCounterHandler(unittest.TestCase):
     def test_init_with_none_info_dir(self):
         """Test that initializing with None info_dir raises ValueError"""
         with self.assertRaises(ValueError) as context:
-            FilesystemCounterHandler(None)
+            FilesystemCounterHandler(None)  # type: ignore[arg-type]
         self.assertIn("required", str(context.exception))
 
     def test_init_with_empty_info_dir(self):
