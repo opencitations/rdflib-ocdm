@@ -18,9 +18,10 @@ from rdflib_ocdm.support import create_literal, create_type
 if TYPE_CHECKING:
     from typing import ClassVar, Dict, Iterable, List, Optional
 
-class AbstractEntity(ABC): # pragma: no cover
+
+class AbstractEntity(ABC):  # pragma: no cover
     """
-    Abstract class which represents a generic entity. 
+    Abstract class which represents a generic entity.
     It sits at the top of the entity class hierarchy.
     """
 
@@ -71,7 +72,9 @@ class AbstractEntity(ABC): # pragma: no cover
         """
         self.g.remove((self.res, RDFS.label, None))
 
-    def _create_literal(self, p: URIRef, s: str, dt: URIRef | None = None, nor: bool = True) -> None:
+    def _create_literal(
+        self, p: URIRef, s: str, dt: URIRef | None = None, nor: bool = True
+    ) -> None:
         """
         Adds an RDF triple with a literal object inside the graph of the entity
 
@@ -130,7 +133,9 @@ class AbstractEntity(ABC): # pragma: no cover
         :return: None
         """
         for s, p, o in iterable_of_triples:
-            if s == self.res:  # This guarantees that only triples belonging to the resource will be added
+            if (
+                s == self.res
+            ):  # This guarantees that only triples belonging to the resource will be added
                 self.g.add((s, p, o))
 
     def _get_literal(self, predicate: URIRef) -> Optional[str]:

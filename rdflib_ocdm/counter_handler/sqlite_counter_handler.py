@@ -42,7 +42,9 @@ class SqliteCounterHandler(CounterHandler):
         entity_name = urllib.parse.quote((str(entity_name)))
         if new_value < 0:
             raise ValueError("new_value must be a non negative integer!")
-        self.cur.execute(f"INSERT OR REPLACE INTO info (entity, count) VALUES ('{entity_name}', {new_value})")
+        self.cur.execute(
+            f"INSERT OR REPLACE INTO info (entity, count) VALUES ('{entity_name}', {new_value})"
+        )
         self.con.commit()
 
     def read_counter(self, entity_name: str) -> int:
@@ -54,14 +56,20 @@ class SqliteCounterHandler(CounterHandler):
         :return: The requested counter value.
         """
         entity_name = urllib.parse.quote(str(entity_name))
-        result = self.cur.execute(f"SELECT count FROM info WHERE entity='{entity_name}'")
+        result = self.cur.execute(
+            f"SELECT count FROM info WHERE entity='{entity_name}'"
+        )
         rows = result.fetchall()
         if len(rows) == 1:
             return rows[0][0]
         elif len(rows) == 0:
             return 0
         else:
-            raise(Exception("There is more than one counter for this entity. The databse id broken"))
+            raise (
+                Exception(
+                    "There is more than one counter for this entity. The databse id broken"
+                )
+            )
 
     def increment_counter(self, entity_name: str) -> int:
         """
@@ -83,12 +91,12 @@ class SqliteCounterHandler(CounterHandler):
         :return: None
         """
         try:
-            if hasattr(self, 'cur') and self.cur:
+            if hasattr(self, "cur") and self.cur:
                 self.cur.close()
         except (sqlite3.ProgrammingError, Exception):
             pass
         try:
-            if hasattr(self, 'con') and self.con:
+            if hasattr(self, "con") and self.con:
                 self.con.close()
         except (sqlite3.ProgrammingError, Exception):
             pass

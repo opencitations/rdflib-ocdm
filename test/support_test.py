@@ -4,9 +4,14 @@
 
 from rdflib import RDF, Dataset, Graph, Literal, URIRef
 
-from rdflib_ocdm.support import (_get_match, create_literal, create_type,
-                                 get_entity_subgraph, get_prov_count,
-                                 is_string_empty)
+from rdflib_ocdm.support import (
+    _get_match,
+    create_literal,
+    create_type,
+    get_entity_subgraph,
+    get_prov_count,
+    is_string_empty,
+)
 
 
 class TestSupport:
@@ -30,23 +35,44 @@ class TestSupport:
         assert not is_string_empty(" test ")
 
     def test_get_prov_count_valid(self):
-        uri = URIRef('http://example.org/entity/123/prov/se/5')
+        uri = URIRef("http://example.org/entity/123/prov/se/5")
         result = get_prov_count(uri)
         assert result == "5"
 
     def test_get_prov_count_invalid(self):
-        uri = URIRef('http://example.org/entity/123')
+        uri = URIRef("http://example.org/entity/123")
         result = get_prov_count(uri)
         assert result is None
 
     def test_get_entity_subgraph_dataset(self):
         dataset = Dataset()
-        entity = URIRef('http://example.org/entity')
-        graph_id = URIRef('http://example.org/graph/')
+        entity = URIRef("http://example.org/entity")
+        graph_id = URIRef("http://example.org/graph/")
 
-        dataset.add((entity, URIRef('http://example.org/p1'), Literal('value1'), Graph(identifier=graph_id)))
-        dataset.add((entity, URIRef('http://example.org/p2'), Literal('value2'), Graph(identifier=graph_id)))
-        dataset.add((URIRef('http://example.org/other'), URIRef('http://example.org/p3'), Literal('value3'), Graph(identifier=graph_id)))
+        dataset.add(
+            (
+                entity,
+                URIRef("http://example.org/p1"),
+                Literal("value1"),
+                Graph(identifier=graph_id),
+            )
+        )
+        dataset.add(
+            (
+                entity,
+                URIRef("http://example.org/p2"),
+                Literal("value2"),
+                Graph(identifier=graph_id),
+            )
+        )
+        dataset.add(
+            (
+                URIRef("http://example.org/other"),
+                URIRef("http://example.org/p3"),
+                Literal("value3"),
+                Graph(identifier=graph_id),
+            )
+        )
 
         subgraph = get_entity_subgraph(dataset, entity)
         assert len(subgraph) == 2
@@ -54,11 +80,17 @@ class TestSupport:
 
     def test_get_entity_subgraph_graph(self):
         graph = Graph()
-        entity = URIRef('http://example.org/entity')
+        entity = URIRef("http://example.org/entity")
 
-        graph.add((entity, URIRef('http://example.org/p1'), Literal('value1')))
-        graph.add((entity, URIRef('http://example.org/p2'), Literal('value2')))
-        graph.add((URIRef('http://example.org/other'), URIRef('http://example.org/p3'), Literal('value3')))
+        graph.add((entity, URIRef("http://example.org/p1"), Literal("value1")))
+        graph.add((entity, URIRef("http://example.org/p2"), Literal("value2")))
+        graph.add(
+            (
+                URIRef("http://example.org/other"),
+                URIRef("http://example.org/p3"),
+                Literal("value3"),
+            )
+        )
 
         subgraph = get_entity_subgraph(graph, entity)
         assert len(subgraph) == 2
@@ -66,27 +98,27 @@ class TestSupport:
 
     def test_create_literal_valid(self):
         graph = Graph()
-        res = URIRef('http://example.org/entity')
-        p = URIRef('http://example.org/property')
+        res = URIRef("http://example.org/entity")
+        p = URIRef("http://example.org/property")
 
-        create_literal(graph, res, p, 'test value')
+        create_literal(graph, res, p, "test value")
         values = list(graph.objects(res, p))
         assert len(values) == 1
-        assert str(values[0]) == 'test value'
+        assert str(values[0]) == "test value"
 
     def test_create_literal_empty_string(self):
         graph = Graph()
-        res = URIRef('http://example.org/entity')
-        p = URIRef('http://example.org/property')
+        res = URIRef("http://example.org/entity")
+        p = URIRef("http://example.org/property")
 
-        create_literal(graph, res, p, '')
+        create_literal(graph, res, p, "")
         values = list(graph.objects(res, p))
         assert len(values) == 0
 
     def test_create_literal_none(self):
         graph = Graph()
-        res = URIRef('http://example.org/entity')
-        p = URIRef('http://example.org/property')
+        res = URIRef("http://example.org/entity")
+        p = URIRef("http://example.org/property")
 
         create_literal(graph, res, p, None)
         values = list(graph.objects(res, p))
@@ -94,9 +126,9 @@ class TestSupport:
 
     def test_create_type_dataset(self):
         dataset = Dataset()
-        res = URIRef('http://example.org/entity')
-        res_type = URIRef('http://example.org/Type')
-        graph_id = 'http://example.org/graph/'
+        res = URIRef("http://example.org/entity")
+        res_type = URIRef("http://example.org/Type")
+        graph_id = "http://example.org/graph/"
 
         create_type(dataset, res, res_type, graph_id)
 
@@ -106,8 +138,8 @@ class TestSupport:
 
     def test_create_type_graph(self):
         graph = Graph()
-        res = URIRef('http://example.org/entity')
-        res_type = URIRef('http://example.org/Type')
+        res = URIRef("http://example.org/entity")
+        res_type = URIRef("http://example.org/Type")
 
         create_type(graph, res, res_type)
 

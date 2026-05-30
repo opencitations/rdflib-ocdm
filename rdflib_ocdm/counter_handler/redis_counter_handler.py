@@ -18,7 +18,9 @@ class RedisCounterHandler:
         self.connection: redis.Redis | None = None  # type: ignore[type-arg]
 
     def connect(self) -> None:
-        self.connection = redis.Redis(host=self.host, port=self.port, db=self.db, password=self.password)
+        self.connection = redis.Redis(
+            host=self.host, port=self.port, db=self.db, password=self.password
+        )
 
     def disconnect(self) -> None:
         if self.connection:
@@ -36,7 +38,7 @@ class RedisCounterHandler:
         assert self.connection is not None
         result: bytes | None = self.connection.get(entity_name)  # type: ignore[assignment]
         if result:
-            return int(result.decode('utf-8'))
+            return int(result.decode("utf-8"))
         else:
             return 0
 

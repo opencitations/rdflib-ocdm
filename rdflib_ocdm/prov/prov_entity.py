@@ -21,8 +21,8 @@ if TYPE_CHECKING:
 
 class ProvEntity(AbstractEntity):
     """Snapshot of entity metadata: a particular snapshot recording the
-    metadata associated with an individual entity at a particular date and time, 
-    including the agent, such as a person, organisation or automated process 
+    metadata associated with an individual entity at a particular date and time,
+    including the agent, such as a person, organisation or automated process
     that created or modified the entity metadata.
     """
 
@@ -40,16 +40,14 @@ class ProvEntity(AbstractEntity):
     iri_description: ClassVar[URIRef] = DCTERMS.description
     iri_has_update_query: ClassVar[URIRef] = OCO.hasUpdateQuery
 
-    short_name_to_type_iri: ClassVar[Dict[str, URIRef]] = {
-        'se': iri_entity
-    }
+    short_name_to_type_iri: ClassVar[Dict[str, URIRef]] = {"se": iri_entity}
 
     def __init__(self, prov_subject: str, g: OCDMProvenance, count: str) -> None:
         super(ProvEntity, self).__init__()
         self.prov_subject = prov_subject
-        self.res = URIRef(prov_subject + '/prov/se/' + count)
+        self.res = URIRef(prov_subject + "/prov/se/" + count)
         self.g: OCDMProvenance = g  # type: ignore[assignment]
-        self._create_type(ProvEntity.iri_entity, prov_subject + '/prov/')
+        self._create_type(ProvEntity.iri_entity, prov_subject + "/prov/")
         if str(self.res) not in g.res_to_entity:
             g.res_to_entity[str(self.res)] = self  # type: ignore[assignment]
             g.all_entities.add(self.res)

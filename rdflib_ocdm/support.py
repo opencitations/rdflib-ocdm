@@ -13,6 +13,7 @@ from rdflib import RDF, XSD, Dataset, Graph, Literal, URIRef
 
 prov_regex: str = r"^(.+)/prov/([a-z][a-z])/([1-9][0-9]*)$"
 
+
 def _get_match(regex: str, group: int, string: str) -> str:
     match: Match[str] | None = re.match(regex, string)
     if match is not None:
@@ -20,14 +21,17 @@ def _get_match(regex: str, group: int, string: str) -> str:
     else:
         return ""
 
+
 def is_string_empty(string: str | None) -> bool:
     return string is None or string.strip() == ""
+
 
 def get_prov_count(res: URIRef) -> Optional[str]:
     string_iri: str = str(res)
     if "/prov/" in string_iri:
         return _get_match(prov_regex, 3, string_iri)
     return None
+
 
 def get_entity_subgraph(graph: Dataset | Graph, entity: URIRef) -> Dataset | Graph:
     if isinstance(graph, Dataset):
@@ -40,12 +44,23 @@ def get_entity_subgraph(graph: Dataset | Graph, entity: URIRef) -> Dataset | Gra
         subj_graph_g.add(triple)
     return subj_graph_g
 
-def create_literal(g: Graph, res: URIRef, p: URIRef, s: str | None, dt: URIRef | None = None, nor: bool = True) -> None:
+
+def create_literal(
+    g: Graph,
+    res: URIRef,
+    p: URIRef,
+    s: str | None,
+    dt: URIRef | None = None,
+    nor: bool = True,
+) -> None:
     if not is_string_empty(s):
         datatype = dt if dt is not None else XSD.string
         g.add((res, p, Literal(s, datatype=datatype, normalize=nor)))
 
-def create_type(g: Dataset | Graph, res: URIRef, res_type: URIRef, identifier: str | None = None) -> None:
+
+def create_type(
+    g: Dataset | Graph, res: URIRef, res_type: URIRef, identifier: str | None = None
+) -> None:
     if isinstance(g, Dataset):
         g.add((res, RDF.type, res_type, identifier))  # type: ignore[arg-type]
     elif isinstance(g, Graph):

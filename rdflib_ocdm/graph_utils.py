@@ -26,9 +26,11 @@ def _extract_graph_iri_from_context(context) -> Optional[URIRef]:
     """
     if context is None:
         return None
-    context_identifier = context.identifier if hasattr(context, 'identifier') else context
+    context_identifier = (
+        context.identifier if hasattr(context, "identifier") else context
+    )
     if isinstance(context_identifier, URIRef):
-        if not str(context_identifier).startswith('urn:x-rdflib:'):
+        if not str(context_identifier).startswith("urn:x-rdflib:"):
             return context_identifier
     return None
 

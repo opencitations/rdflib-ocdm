@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from oc_ocdm.decorators import accepts_only
-from rdflib import URIRef, XSD
+from rdflib import XSD, URIRef
 
 from rdflib_ocdm.prov.prov_entity import ProvEntity
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class SnapshotEntity(ProvEntity):
     """Snapshot of entity metadata: a particular snapshot recording the
-    metadata associated with an individual entity at a particular date and time, 
+    metadata associated with an individual entity at a particular date and time,
     including the agent, such as a person, organisation or automated process that
     created or modified the entity metadata."""
 
@@ -32,7 +32,7 @@ class SnapshotEntity(ProvEntity):
         """
         return self._get_literal(ProvEntity.iri_generated_at_time)
 
-    @accepts_only('literal')
+    @accepts_only("literal")
     def has_generation_time(self, string: str) -> None:
         """
         Setter method corresponding to the ``prov:generatedAtTime`` RDF predicate.
@@ -68,7 +68,7 @@ class SnapshotEntity(ProvEntity):
         """
         return self._get_literal(ProvEntity.iri_invalidated_at_time)
 
-    @accepts_only('literal')
+    @accepts_only("literal")
     def has_invalidation_time(self, string: str) -> None:
         """
         Setter method corresponding to the ``prov:invalidatedAtTime`` RDF predicate.
@@ -103,7 +103,9 @@ class SnapshotEntity(ProvEntity):
 
         :return: The requested value if found, None otherwise
         """
-        uri: Optional[URIRef] = self._get_uri_reference(ProvEntity.iri_specialization_of)
+        uri: Optional[URIRef] = self._get_uri_reference(
+            ProvEntity.iri_specialization_of
+        )
         return uri
 
     def is_snapshot_of(self, en_res: URIRef) -> None:
@@ -137,10 +139,12 @@ class SnapshotEntity(ProvEntity):
 
         :return: A list containing the requested values if found, None otherwise
         """
-        uri_list: List[URIRef] = self._get_multiple_uri_references(ProvEntity.iri_was_derived_from)
+        uri_list: List[URIRef] = self._get_multiple_uri_references(
+            ProvEntity.iri_was_derived_from
+        )
         result: List[ProvEntity] = []
         for uri in uri_list:
-            prov_subj = uri.split('/prov/se/')[0]
+            prov_subj = uri.split("/prov/se/")[0]
             result.append(self.g.add_se(URIRef(prov_subj), uri))  # type: ignore[union-attr]
         return result
 
@@ -183,10 +187,12 @@ class SnapshotEntity(ProvEntity):
 
         :return: The requested value if found, None otherwise
         """
-        uri: Optional[URIRef] = self._get_uri_reference(ProvEntity.iri_had_primary_source)
+        uri: Optional[URIRef] = self._get_uri_reference(
+            ProvEntity.iri_had_primary_source
+        )
         return uri
 
-    @accepts_only('thing')
+    @accepts_only("thing")
     def has_primary_source(self, any_res: URIRef) -> None:
         """
         Setter method corresponding to the ``prov:hadPrimarySource`` RDF predicate.
@@ -221,7 +227,7 @@ class SnapshotEntity(ProvEntity):
         """
         return self._get_literal(ProvEntity.iri_has_update_query)
 
-    @accepts_only('literal')
+    @accepts_only("literal")
     def has_update_action(self, string: str) -> None:
         """
         Setter method corresponding to the ``oco:hasUpdateQuery`` RDF predicate.
@@ -256,7 +262,7 @@ class SnapshotEntity(ProvEntity):
         """
         return self._get_literal(ProvEntity.iri_description)
 
-    @accepts_only('literal')
+    @accepts_only("literal")
     def has_description(self, string: str) -> None:
         """
         Setter method corresponding to the ``dcterms:description`` RDF predicate.
@@ -291,10 +297,12 @@ class SnapshotEntity(ProvEntity):
 
         :return: The requested value if found, None otherwise
         """
-        uri: Optional[URIRef] = self._get_uri_reference(ProvEntity.iri_was_attributed_to)
+        uri: Optional[URIRef] = self._get_uri_reference(
+            ProvEntity.iri_was_attributed_to
+        )
         return uri
 
-    @accepts_only('thing')
+    @accepts_only("thing")
     def has_resp_agent(self, se_agent: URIRef) -> None:
         """
         Setter method corresponding to the ``prov:wasAttributedTo`` RDF predicate.

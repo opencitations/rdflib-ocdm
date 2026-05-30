@@ -33,7 +33,7 @@ class FilesystemCounterHandler(CounterHandler):
 
         self.info_dir: str = info_dir
         self.prov_files = dict()
-        self.provenance_index_filename = 'provenance_index.json'
+        self.provenance_index_filename = "provenance_index.json"
 
     def set_counter(self, new_value: int, entity_name: str) -> None:
         """
@@ -51,9 +51,9 @@ class FilesystemCounterHandler(CounterHandler):
             raise ValueError("new_value must be a non negative integer!")
         file_path: str = self._get_prov_path()
         self.__initialize_file_if_not_existing(file_path, entity_name)
-        with open(file_path, 'r', encoding='utf8') as file:
+        with open(file_path, "r", encoding="utf8") as file:
             data = json.load(file)
-        with open(file_path, 'w', encoding='utf8') as outfile:
+        with open(file_path, "w", encoding="utf8") as outfile:
             data[entity_name] = new_value
             json.dump(obj=data, fp=outfile, ensure_ascii=False, indent=False)
 
@@ -89,12 +89,12 @@ class FilesystemCounterHandler(CounterHandler):
         if not os.path.exists(os.path.dirname(file_path)):
             os.makedirs(os.path.dirname(file_path))
         if not os.path.isfile(file_path):
-            with open(file_path, 'w', encoding='utf8') as outfile:
+            with open(file_path, "w", encoding="utf8") as outfile:
                 json.dump({entity_name: 0}, ensure_ascii=False, indent=None, fp=outfile)
 
     def _read_number(self, file_path: str, entity_name: str) -> int:
         self.__initialize_file_if_not_existing(file_path, entity_name)
-        with open(file_path, 'r', encoding='utf8') as file:
+        with open(file_path, "r", encoding="utf8") as file:
             data = json.load(file)
             if entity_name in data:
                 self.prov_files[entity_name] = data[entity_name]
@@ -106,9 +106,9 @@ class FilesystemCounterHandler(CounterHandler):
         self.__initialize_file_if_not_existing(file_path, entity_name)
         cur_number = self._read_number(file_path, entity_name)
         cur_number += 1
-        with open(file_path, 'r', encoding='utf8') as file:
+        with open(file_path, "r", encoding="utf8") as file:
             data = json.load(file)
-        with open(file_path, 'w', encoding='utf8') as outfile:
+        with open(file_path, "w", encoding="utf8") as outfile:
             data[entity_name] = cur_number
             json_object = json.dumps(data, ensure_ascii=False, indent=None)
             outfile.write(json_object)

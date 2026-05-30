@@ -43,7 +43,12 @@ class OCDMGraphCommons:
         self.all_entities: set = set()
         self.provenance = OCDMProvenance(self, counter_handler)
 
-    def preexisting_finished(self, resp_agent: str | None = None, primary_source: str | None = None, c_time: float | str | None = None) -> None:
+    def preexisting_finished(
+        self,
+        resp_agent: str | None = None,
+        primary_source: str | None = None,
+        c_time: float | str | None = None,
+    ) -> None:
         assert isinstance(self, (Graph, Dataset))
         self.preexisting_graph = deepcopy(self)
 
@@ -55,21 +60,41 @@ class OCDMGraphCommons:
             unique_subjects = set(self.subjects(unique=True))
 
         for subject in unique_subjects:
-            existing_graph_iri = self.entity_index.get(subject, {}).get('graph_iri')
-            self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source, 'graph_iri': existing_graph_iri}
+            existing_graph_iri = self.entity_index.get(subject, {}).get("graph_iri")
+            self.entity_index[subject] = {
+                "to_be_deleted": False,
+                "is_restored": False,
+                "resp_agent": resp_agent,
+                "source": primary_source,
+                "graph_iri": existing_graph_iri,
+            }
 
             if isinstance(self, Dataset) and existing_graph_iri is None:
-                self.entity_index[subject]['graph_iri'] = _extract_graph_iri(self, subject)
+                self.entity_index[subject]["graph_iri"] = _extract_graph_iri(
+                    self, subject
+                )
 
             self.all_entities.add(subject)
             count = self.provenance.counter_handler.read_counter(str(subject))
             if count == 0:
                 if c_time is None:
-                    cur_time = (datetime.now(tz=timezone.utc).replace(microsecond=0) - timedelta(seconds=5)).isoformat(sep="T")
+                    cur_time = (
+                        datetime.now(tz=timezone.utc).replace(microsecond=0)
+                        - timedelta(seconds=5)
+                    ).isoformat(sep="T")
                 else:
-                    cur_time = (datetime.fromtimestamp(float(c_time), tz=timezone.utc).replace(microsecond=0) - timedelta(seconds=5)).isoformat(sep="T")
-                new_snapshot: SnapshotEntity = self.provenance._create_snapshot(URIRef(str(subject)), cur_time)
-                new_snapshot.has_description(f"The entity '{str(subject)}' has been created.")
+                    cur_time = (
+                        datetime.fromtimestamp(float(c_time), tz=timezone.utc).replace(
+                            microsecond=0
+                        )
+                        - timedelta(seconds=5)
+                    ).isoformat(sep="T")
+                new_snapshot: SnapshotEntity = self.provenance._create_snapshot(
+                    URIRef(str(subject)), cur_time
+                )
+                new_snapshot.has_description(
+                    f"The entity '{str(subject)}' has been created."
+                )
 
     def merge(self, res: URIRef, other: URIRef) -> None:
         assert isinstance(self, (Graph, Dataset))
@@ -96,14 +121,23 @@ class OCDMGraphCommons:
 
         self._OCDMGraphCommons__merge_index.setdefault(res, set()).add(other)
         if other not in self.entity_index:
-            self.entity_index[other] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': None, 'source': None, 'graph_iri': other_graph_iri}
+            self.entity_index[other] = {
+                "to_be_deleted": False,
+                "is_restored": False,
+                "resp_agent": None,
+                "source": None,
+                "graph_iri": other_graph_iri,
+            }
         else:
-            if other_graph_iri is not None and self.entity_index[other].get('graph_iri') is None:
-                self.entity_index[other]['graph_iri'] = other_graph_iri
-        self.entity_index[other]['to_be_deleted'] = True
-    
+            if (
+                other_graph_iri is not None
+                and self.entity_index[other].get("graph_iri") is None
+            ):
+                self.entity_index[other]["graph_iri"] = other_graph_iri
+        self.entity_index[other]["to_be_deleted"] = True
+
     def mark_as_deleted(self, res: URIRef) -> None:
-        self.entity_index[res]['to_be_deleted'] = True
+        self.entity_index[res]["to_be_deleted"] = True
 
     def mark_as_restored(self, res: URIRef) -> None:
         """
@@ -111,14 +145,14 @@ class OCDMGraphCommons:
         This will:
         1. Set is_restored flag to True in the entity_index
         2. Set to_be_deleted flag to False
-        
+
         :param res: The URI reference of the entity to restore
         :type res: URIRef
         :return: None
         """
         if res in self.entity_index:
-            self.entity_index[res]['is_restored'] = True
-            self.entity_index[res]['to_be_deleted'] = False
+            self.entity_index[res]["is_restored"] = True
+            self.entity_index[res]["to_be_deleted"] = False
 
     @property
     def merge_index(self) -> dict:
@@ -127,7 +161,7 @@ class OCDMGraphCommons:
     @property
     def entity_index(self) -> dict:
         return self.__entity_index
-    
+
     def generate_provenance(self, c_time: float | None = None) -> None:
         return self.provenance.generate_provenance(c_time)
 
@@ -136,7 +170,7 @@ class OCDMGraphCommons:
         if isinstance(entity, SnapshotEntity):
             return entity
         return None
-    
+
     def commit_changes(self) -> None:
         self._OCDMGraphCommons__merge_index = dict()
         self._OCDMGraphCommons__entity_index = dict()
@@ -147,8 +181,16 @@ class OCDMGraphCommons:
         prov_g = Dataset()
         for _, prov_entity in self.provenance.res_to_entity.items():
             for triple in prov_entity.g.triples((None, None, None)):
-                prov_g.add((triple[0], triple[1], triple[2], URIRef(prov_entity.prov_subject + '/prov/')))  # type: ignore[arg-type]
+                prov_g.add(
+                    (
+                        triple[0],
+                        triple[1],
+                        triple[2],
+                        URIRef(prov_entity.prov_subject + "/prov/"),
+                    )
+                )  # type: ignore[arg-type]
         return prov_g
+
 
 class OCDMGraph(OCDMGraphCommons, Graph):
     def __init__(self, counter_handler: CounterHandler | None = None):
@@ -156,20 +198,30 @@ class OCDMGraph(OCDMGraphCommons, Graph):
         self.preexisting_graph: Graph | Dataset = Graph()
         OCDMGraphCommons.__init__(self, counter_handler)  # type: ignore[arg-type]
 
-    def add(self, triple: _TripleType, resp_agent: object = None, primary_source: object = None):  # type: ignore[override]
+    def add(
+        self,
+        triple: _TripleType,
+        resp_agent: object = None,
+        primary_source: object = None,
+    ):  # type: ignore[override]
         s, p, o = triple
         assert isinstance(s, Node), "Subject %s must be an rdflib term" % (s,)
         assert isinstance(p, Node), "Predicate %s must be an rdflib term" % (p,)
         assert isinstance(o, Node), "Object %s must be an rdflib term" % (o,)
         self.store.add((s, p, o), self, quoted=False)
-        
+
         # Add the subject to all_entities if it's not already present
         if s not in self.all_entities:
             self.all_entities.add(s)
-        
+
         if s not in self.entity_index:
-            self.entity_index[s] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source}
-        
+            self.entity_index[s] = {
+                "to_be_deleted": False,
+                "is_restored": False,
+                "resp_agent": resp_agent,
+                "source": primary_source,
+            }
+
         return self
 
     def parse(
@@ -199,7 +251,11 @@ class OCDMGraph(OCDMGraphCommons, Graph):
         could_not_guess_format = False
         if format is None:
             _file = getattr(source, "file", None)
-            if _file is not None and getattr(_file, "name", None) and isinstance(_file.name, str):
+            if (
+                _file is not None
+                and getattr(_file, "name", None)
+                and isinstance(_file.name, str)
+            ):
                 format = rdflib.util.guess_format(_file.name)
             if format is None:
                 format = "turtle"
@@ -225,9 +281,15 @@ class OCDMGraph(OCDMGraphCommons, Graph):
                 self.all_entities.add(subject)
 
             if subject not in self.entity_index:
-                self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source}
+                self.entity_index[subject] = {
+                    "to_be_deleted": False,
+                    "is_restored": False,
+                    "resp_agent": resp_agent,
+                    "source": primary_source,
+                }
 
         return self
+
 
 class OCDMDataset(OCDMGraphCommons, Dataset):
     def __init__(self, counter_handler: CounterHandler | None = None):
@@ -270,18 +332,30 @@ class OCDMDataset(OCDMGraphCommons, Dataset):
             self.all_entities.add(s)
 
         if s not in self.entity_index:
-            self.entity_index[s] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source, 'graph_iri': None}
+            self.entity_index[s] = {
+                "to_be_deleted": False,
+                "is_restored": False,
+                "resp_agent": resp_agent,
+                "source": primary_source,
+                "graph_iri": None,
+            }
 
         # Store graph_iri in entity_index for later retrieval
         # We already have the context from _spoc, use it directly for efficiency
-        if self.entity_index[s]['graph_iri'] is None:
-            self.entity_index[s]['graph_iri'] = _extract_graph_iri_from_context(c)
+        if self.entity_index[s]["graph_iri"] is None:
+            self.entity_index[s]["graph_iri"] = _extract_graph_iri_from_context(c)
 
         return self
 
     def parse(  # type: ignore[override]
         self,
-        source: IO[bytes] | TextIO | InputSource | str | bytes | pathlib.PurePath | None = None,
+        source: IO[bytes]
+        | TextIO
+        | InputSource
+        | str
+        | bytes
+        | pathlib.PurePath
+        | None = None,
         publicID: str | None = None,  # noqa: N803
         format: str | None = None,
         location: str | None = None,
@@ -318,13 +392,25 @@ class OCDMDataset(OCDMGraphCommons, Dataset):
                 self.all_entities.add(subject)
 
             if subject not in self.entity_index:
-                self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source, 'graph_iri': None}
+                self.entity_index[subject] = {
+                    "to_be_deleted": False,
+                    "is_restored": False,
+                    "resp_agent": resp_agent,
+                    "source": primary_source,
+                    "graph_iri": None,
+                }
 
             # Store graph_iri for this subject by finding its context
-            if 'graph_iri' not in self.entity_index[subject] or self.entity_index[subject]['graph_iri'] is None:
-                self.entity_index[subject]['graph_iri'] = _extract_graph_iri(self, subject)
+            if (
+                "graph_iri" not in self.entity_index[subject]
+                or self.entity_index[subject]["graph_iri"] is None
+            ):
+                self.entity_index[subject]["graph_iri"] = _extract_graph_iri(
+                    self, subject
+                )
 
         return context
+
 
 def _assertnode(*terms):
     for t in terms:
@@ -341,10 +427,11 @@ class OCDMConjunctiveGraph(OCDMDataset):
     OCDMConjunctiveGraph has been renamed to OCDMDataset to reflect
     the migration from the deprecated ConjunctiveGraph to Dataset.
     """
+
     def __init__(self, counter_handler: CounterHandler | None = None):
         warnings.warn(
             "OCDMConjunctiveGraph is deprecated, use OCDMDataset instead",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         super().__init__(counter_handler)
