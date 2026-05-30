@@ -19,8 +19,14 @@ dev = [
     "fakeredis>=2.29.0,<3",
     "genbadge[coverage]>=1.1.3,<2",
     "isort>=6.0.1,<7",
+    "pyright>=1.1.409",
     "reuse>=6.2.0",
 ]
+
+[tool.pyright]
+pythonVersion = "3.10"
+typeCheckingMode = "standard"
+exclude = ["test"]
 
 [build-system]
 requires = ["hatchling"]

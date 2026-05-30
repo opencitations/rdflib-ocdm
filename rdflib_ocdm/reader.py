@@ -16,8 +16,8 @@ from rdflib_ocdm.ocdm_graph import OCDMDataset, OCDMGraph
 from rdflib_ocdm.retry_utils import execute_with_retry
 
 
-class Reader(object):
-    def __init__(self, repok: Reporter = None, reperr: Reporter = None):
+class Reader:
+    def __init__(self, repok: Reporter | None = None, reperr: Reporter | None = None):
         if repok is None:
             self.repok: Reporter = Reporter(prefix="[Reader: INFO] ")
         else:
@@ -46,12 +46,11 @@ class Reader(object):
             sparql.setMethod(POST)
             sparql.setReturnFormat(JSON)
             
-            # Use the retry utility function instead of duplicating retry logic
-            result = execute_with_retry(
+            result: dict = execute_with_retry(  # type: ignore[type-arg]
                 sparql.queryAndConvert,
                 max_retries=max_retries
             )
-            
+
             if result and 'results' in result and 'bindings' in result['results']:
                 temp_graph = Dataset()
                 for binding in result['results']['bindings']:
@@ -77,7 +76,7 @@ class Reader(object):
                     temp_graph.add((subject, predicate, obj, graph_uri))
                 
                 for quad in temp_graph.quads():
-                    ocdm_graph.add(quad)
+                    ocdm_graph.add(quad)  # type: ignore[arg-type]
             else:
                 raise ValueError("No entities were found.")
         
@@ -95,14 +94,13 @@ class Reader(object):
             sparql.setMethod(POST)
             sparql.setReturnFormat(XML)
             
-            # Use the retry utility function instead of duplicating retry logic
-            result: Graph = execute_with_retry(
+            result_graph: Graph = execute_with_retry(  # type: ignore[type-arg]
                 sparql.queryAndConvert,
                 max_retries=max_retries
             )
             
-            if result is not None and len(result) > 0:
-                for triple in result:
+            if result_graph is not None and len(result_graph) > 0:
+                for triple in result_graph:
                     ocdm_graph.add(triple)
             else:
                 raise ValueError("No entities were found.")

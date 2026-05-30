@@ -48,8 +48,8 @@ class ProvEntity(AbstractEntity):
         super(ProvEntity, self).__init__()
         self.prov_subject = prov_subject
         self.res = URIRef(prov_subject + '/prov/se/' + count)
-        self.g: OCDMProvenance = g
+        self.g: OCDMProvenance = g  # type: ignore[assignment]
         self._create_type(ProvEntity.iri_entity, prov_subject + '/prov/')
         if str(self.res) not in g.res_to_entity:
-            g.res_to_entity[str(self.res)] = self
+            g.res_to_entity[str(self.res)] = self  # type: ignore[assignment]
             g.all_entities.add(self.res)

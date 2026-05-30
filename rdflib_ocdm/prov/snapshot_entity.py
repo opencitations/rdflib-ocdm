@@ -59,7 +59,7 @@ class SnapshotEntity(ProvEntity):
 
         :return: None
         """
-        self.g.remove((self.res, ProvEntity.iri_generated_at_time, None))
+        self.g.remove((self.res, ProvEntity.iri_generated_at_time, None))  # type: ignore[arg-type]
 
     # HAS INVALIDATION DATE
     def get_invalidation_time(self) -> Optional[str]:
@@ -96,7 +96,7 @@ class SnapshotEntity(ProvEntity):
 
         :return: None
         """
-        self.g.remove((self.res, ProvEntity.iri_invalidated_at_time, None))
+        self.g.remove((self.res, ProvEntity.iri_invalidated_at_time, None))  # type: ignore[arg-type]
 
     # IS SNAPSHOT OF
     def get_is_snapshot_of(self) -> Optional[URIRef]:
@@ -130,7 +130,7 @@ class SnapshotEntity(ProvEntity):
 
         :return: None
         """
-        self.g.remove((self.res, ProvEntity.iri_specialization_of, None))
+        self.g.remove((self.res, ProvEntity.iri_specialization_of, None))  # type: ignore[arg-type]
 
     # IS DERIVED FROM
     def get_derives_from(self) -> List[ProvEntity]:
@@ -142,9 +142,8 @@ class SnapshotEntity(ProvEntity):
         uri_list: List[URIRef] = self._get_multiple_uri_references(ProvEntity.iri_was_derived_from)
         result: List[ProvEntity] = []
         for uri in uri_list:
-            # TODO: what is the prov_subject of these snapshots?
             prov_subj = uri.split('/prov/se/')[0]
-            result.append(self.g.add_se(prov_subj, uri))
+            result.append(self.g.add_se(URIRef(prov_subj), uri))  # type: ignore[union-attr]
         return result
 
     def derives_from(self, se_res: ProvEntity) -> None:
@@ -161,7 +160,7 @@ class SnapshotEntity(ProvEntity):
         """
         self.g.add((self.res, ProvEntity.iri_was_derived_from, se_res.res))
 
-    def remove_derives_from(self, se_res: ProvEntity = None) -> None:
+    def remove_derives_from(self, se_res: ProvEntity | None = None) -> None:
         """
         Remover method corresponding to the ``prov:wasDerivedFrom`` RDF predicate.
 
@@ -175,9 +174,9 @@ class SnapshotEntity(ProvEntity):
         :return: None
         """
         if se_res is not None:
-            self.g.remove((self.res, ProvEntity.iri_was_derived_from, se_res.res))
+            self.g.remove((self.res, ProvEntity.iri_was_derived_from, se_res.res))  # type: ignore[arg-type]
         else:
-            self.g.remove((self.res, ProvEntity.iri_was_derived_from, None))
+            self.g.remove((self.res, ProvEntity.iri_was_derived_from, None))  # type: ignore[arg-type]
 
     # HAS PRIMARY SOURCE
     def get_primary_source(self) -> Optional[URIRef]:
@@ -213,7 +212,7 @@ class SnapshotEntity(ProvEntity):
 
         :return: None
         """
-        self.g.remove((self.res, ProvEntity.iri_had_primary_source, None))
+        self.g.remove((self.res, ProvEntity.iri_had_primary_source, None))  # type: ignore[arg-type]
 
     # HAS UPDATE ACTION
     def get_update_action(self) -> Optional[str]:
@@ -248,7 +247,7 @@ class SnapshotEntity(ProvEntity):
 
         :return: None
         """
-        self.g.remove((self.res, ProvEntity.iri_has_update_query, None))
+        self.g.remove((self.res, ProvEntity.iri_has_update_query, None))  # type: ignore[arg-type]
 
     # HAS DESCRIPTION
     def get_description(self) -> Optional[str]:
@@ -285,7 +284,7 @@ class SnapshotEntity(ProvEntity):
 
         :return: None
         """
-        self.g.remove((self.res, ProvEntity.iri_description, None))
+        self.g.remove((self.res, ProvEntity.iri_description, None))  # type: ignore[arg-type]
 
     # IS ATTRIBUTED TO
     def get_resp_agent(self) -> Optional[URIRef]:
@@ -319,4 +318,4 @@ class SnapshotEntity(ProvEntity):
 
         :return: None
         """
-        self.g.remove((self.res, ProvEntity.iri_was_attributed_to, None))
+        self.g.remove((self.res, ProvEntity.iri_was_attributed_to, None))  # type: ignore[arg-type]

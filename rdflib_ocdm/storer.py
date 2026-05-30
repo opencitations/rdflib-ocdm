@@ -24,9 +24,9 @@ if TYPE_CHECKING:
     from rdflib import Graph
 
 
-class Storer(object):
+class Storer:
 
-    def __init__(self, abstract_set: OCDMGraphCommons|Graph, repok: Reporter = None, reperr: Reporter = None, output_format: str = "json-ld", zip_output: bool = False,) -> None:
+    def __init__(self, abstract_set: OCDMGraphCommons | Graph, repok: Reporter | None = None, reperr: Reporter | None = None, output_format: str = "json-ld", zip_output: bool = False) -> None:
         self.a_set = abstract_set
         supported_formats: Set[str] = {'application/n-triples', 'ntriples', 'nt', 'nt11',
                                        'application/n-quads', 'nquads', 'json-ld'}
@@ -46,7 +46,7 @@ class Storer(object):
         else:
             self.reperr: Reporter = reperr
 
-    def _query(self, query_string: str, triplestore_url: str, base_dir: str = None,
+    def _query(self, query_string: str, triplestore_url: str, base_dir: str | None = None,
                added_statements: int = 0, removed_statements: int = 0, max_retries: int = 5) -> bool:
         if query_string != "":
             try:
@@ -83,7 +83,7 @@ class Storer(object):
                 return False
         return False
     
-    def upload_all(self, triplestore_url: str, base_dir: str = None, batch_size: int = 10) -> bool:
+    def upload_all(self, triplestore_url: str, base_dir: str | None = None, batch_size: int = 10) -> bool:
         self.repok.new_article()
         self.reperr.new_article()
         if batch_size <= 0:
@@ -93,8 +93,8 @@ class Storer(object):
         removed_statements: int = 0
         skipped_queries: int = 0
         result: bool = True
-        entity_type = 'graph' if isinstance(self.a_set, OCDMGraph) or isinstance(self.a_set, OCDMDataset) else 'prov'
-        for idx, entity in enumerate(list(self.a_set.all_entities)):
+        entity_type = 'graph' if isinstance(self.a_set, (OCDMGraph, OCDMDataset)) else 'prov'
+        for idx, entity in enumerate(list(self.a_set.all_entities)):  # type: ignore[union-attr]
             update_query, n_added, n_removed = get_update_query(self.a_set, entity, entity_type)
             if update_query == "":
                 skipped_queries += 1

@@ -14,12 +14,11 @@ from rdflib.exceptions import ParserError
 from rdflib.parser import InputSource, Parser, create_input_source
 
 if TYPE_CHECKING:
-    _SubjectType = Node
-    _PredicateType = Node
-    _ObjectType = Node
-    _TripleType = Tuple["_SubjectType", "_PredicateType", "_ObjectType"]
-    from typing import (IO, TYPE_CHECKING, Any, BinaryIO, List, Optional, TextIO,
-                        Union, List, Tuple)
+    from typing import IO, BinaryIO, Optional, TextIO, Tuple, Union
+
+    from rdflib.term import Node as _Node
+
+    _TripleType = Tuple[_Node, _Node, _Node]
 
 import pathlib
 import warnings
@@ -35,17 +34,20 @@ from rdflib_ocdm.prov.provenance import OCDMProvenance
 from rdflib_ocdm.prov.snapshot_entity import SnapshotEntity
 
 
-class OCDMGraphCommons():
+class OCDMGraphCommons:
+    preexisting_graph: Graph | Dataset
+
     def __init__(self, counter_handler: CounterHandler):
-        self.__merge_index = dict()
-        self.__entity_index = dict()
-        self.all_entities = set()
+        self.__merge_index: dict = dict()
+        self.__entity_index: dict = dict()
+        self.all_entities: set = set()
         self.provenance = OCDMProvenance(self, counter_handler)
 
-    def preexisting_finished(self: Graph|Dataset|OCDMGraphCommons, resp_agent: str = None, primary_source: str = None, c_time: str = None):
+    def preexisting_finished(self, resp_agent: str | None = None, primary_source: str | None = None, c_time: str | None = None) -> None:
+        assert isinstance(self, (Graph, Dataset))
         self.preexisting_graph = deepcopy(self)
 
-        unique_subjects = set()
+        unique_subjects: set = set()
         if isinstance(self, Dataset):
             for s, _, _, _ in self.quads((None, None, None, None)):
                 unique_subjects.add(s)
@@ -53,53 +55,49 @@ class OCDMGraphCommons():
             unique_subjects = set(self.subjects(unique=True))
 
         for subject in unique_subjects:
-            # Initialize or update entity_index, preserving graph_iri if already set
             existing_graph_iri = self.entity_index.get(subject, {}).get('graph_iri')
             self.entity_index[subject] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': resp_agent, 'source': primary_source, 'graph_iri': existing_graph_iri}
 
-            # If graph_iri not yet set and this is a Dataset, find it
             if isinstance(self, Dataset) and existing_graph_iri is None:
                 self.entity_index[subject]['graph_iri'] = _extract_graph_iri(self, subject)
 
             self.all_entities.add(subject)
-            count = self.provenance.counter_handler.read_counter(subject)
+            count = self.provenance.counter_handler.read_counter(str(subject))
             if count == 0:
                 if c_time is None:
-                    cur_time: str = (datetime.now(tz=timezone.utc).replace(microsecond=0) - timedelta(seconds=5)).isoformat(sep="T")
+                    cur_time = (datetime.now(tz=timezone.utc).replace(microsecond=0) - timedelta(seconds=5)).isoformat(sep="T")
                 else:
-                    cur_time: str = (datetime.fromtimestamp(c_time, tz=timezone.utc).replace(microsecond=0) - timedelta(seconds=5)).isoformat(sep="T")
-                new_snapshot: SnapshotEntity = self.provenance._create_snapshot(subject, cur_time)
+                    cur_time = (datetime.fromtimestamp(float(c_time), tz=timezone.utc).replace(microsecond=0) - timedelta(seconds=5)).isoformat(sep="T")
+                new_snapshot: SnapshotEntity = self.provenance._create_snapshot(URIRef(str(subject)), cur_time)
                 new_snapshot.has_description(f"The entity '{str(subject)}' has been created.")
 
-    def merge(self: Graph|Dataset|OCDMGraphCommons, res: URIRef, other: URIRef):
-        # Preserve graph_iri before removing quads
+    def merge(self, res: URIRef, other: URIRef) -> None:
+        assert isinstance(self, (Graph, Dataset))
         other_graph_iri = None
         if isinstance(self, Dataset):
-            # Extract graph_iri from the entity being merged before removal
             other_graph_iri = _extract_graph_iri(self, other)
 
-            quads_list: List[Tuple] = list(self.quads((None, None, other, None)))
+            quads_list = list(self.quads((None, None, other, None)))
             for s, p, o, c in quads_list:
-                self.remove((s, p, o, c))
-                self.add((s, p, res, c))
-            quads_list: List[Tuple] = list(self.quads((other, None, None, None)))
-            for s, p, o, c in quads_list:
-                self.remove((s, p, o, c))
-        else:
-            triples_list: List[Tuple] = list(self.triples((None, None, other)))
+                self.remove((s, p, o, c))  # type: ignore[arg-type]
+                self.add((s, p, res, c))  # type: ignore[arg-type]
+            quads_list_del = list(self.quads((other, None, None, None)))
+            for s, p, o, c in quads_list_del:
+                self.remove((s, p, o, c))  # type: ignore[arg-type]
+        elif isinstance(self, Graph):
+            triples_list = list(self.triples((None, None, other)))
             for triple in triples_list:
                 self.remove(triple)
                 new_triple = (triple[0], triple[1], res)
                 self.add(new_triple)
-            triples_list: List[Tuple] = list(self.triples((other, None, None)))
-            for triple in triples_list:
+            triples_list_del = list(self.triples((other, None, None)))
+            for triple in triples_list_del:
                 self.remove(triple)
 
-        self.__merge_index.setdefault(res, set()).add(other)
+        self._OCDMGraphCommons__merge_index.setdefault(res, set()).add(other)
         if other not in self.entity_index:
             self.entity_index[other] = {'to_be_deleted': False, 'is_restored': False, 'resp_agent': None, 'source': None, 'graph_iri': other_graph_iri}
         else:
-            # Preserve graph_iri if it was already set
             if other_graph_iri is not None and self.entity_index[other].get('graph_iri') is None:
                 self.entity_index[other]['graph_iri'] = other_graph_iri
         self.entity_index[other]['to_be_deleted'] = True
@@ -130,37 +128,40 @@ class OCDMGraphCommons():
     def entity_index(self) -> dict:
         return self.__entity_index
     
-    def generate_provenance(self, c_time: float = None) -> None:
+    def generate_provenance(self, c_time: float | None = None) -> None:
         return self.provenance.generate_provenance(c_time)
+
+    def get_entity(self, res: str) -> SnapshotEntity | None:
+        entity = self.provenance.get_entity(res)
+        if isinstance(entity, SnapshotEntity):
+            return entity
+        return None
     
-    def get_entity(self, res: str) -> Optional[SnapshotEntity]:
-        return self.provenance.get_entity(res)
-    
-    def commit_changes(self):
-        self.__merge_index = dict()
-        self.__entity_index = dict()
+    def commit_changes(self) -> None:
+        self._OCDMGraphCommons__merge_index = dict()
+        self._OCDMGraphCommons__entity_index = dict()
+        assert isinstance(self, (Graph, Dataset))
         self.preexisting_graph = deepcopy(self)
-    
+
     def get_provenance_graphs(self) -> Dataset:
         prov_g = Dataset()
         for _, prov_entity in self.provenance.res_to_entity.items():
             for triple in prov_entity.g.triples((None, None, None)):
-                prov_g.add((triple[0], triple[1], triple[2], URIRef(prov_entity.prov_subject + '/prov/')))
+                prov_g.add((triple[0], triple[1], triple[2], URIRef(prov_entity.prov_subject + '/prov/')))  # type: ignore[arg-type]
         return prov_g
 
 class OCDMGraph(OCDMGraphCommons, Graph):
-    def __init__(self, counter_handler: CounterHandler = None):
+    def __init__(self, counter_handler: CounterHandler | None = None):
         Graph.__init__(self)
-        self.preexisting_graph = Graph()
-        OCDMGraphCommons.__init__(self, counter_handler)
+        self.preexisting_graph: Graph | Dataset = Graph()
+        OCDMGraphCommons.__init__(self, counter_handler)  # type: ignore[arg-type]
 
-    def add(self, triple: "_TripleType", resp_agent = None, primary_source = None):
-        """Add a triple with self as context"""
+    def add(self, triple: _TripleType, resp_agent: object = None, primary_source: object = None):  # type: ignore[override]
         s, p, o = triple
         assert isinstance(s, Node), "Subject %s must be an rdflib term" % (s,)
         assert isinstance(p, Node), "Predicate %s must be an rdflib term" % (p,)
         assert isinstance(o, Node), "Object %s must be an rdflib term" % (o,)
-        self._Graph__store.add((s, p, o), self, quoted=False)
+        self.store.add((s, p, o), self, quoted=False)
         
         # Add the subject to all_entities if it's not already present
         if s not in self.all_entities:
@@ -181,93 +182,10 @@ class OCDMGraph(OCDMGraphCommons, Graph):
         location: Optional[str] = None,
         file: Optional[Union[BinaryIO, TextIO]] = None,
         data: Optional[Union[str, bytes]] = None,
-        resp_agent: URIRef = None,
-        primary_source: URIRef = None,
-        **args: Any,
-    ) -> "Graph":
-        """
-        Parse an RDF source adding the resulting triples to the Graph.
-
-        The source is specified using one of source, location, file or data.
-
-        .. caution::
-
-           This method can access directly or indirectly requested network or
-           file resources, for example, when parsing JSON-LD documents with
-           ``@context`` directives that point to a network location.
-
-           When processing untrusted or potentially malicious documents,
-           measures should be taken to restrict network and file access.
-
-           For information on available security measures, see the RDFLib
-           :doc:`Security Considerations </security_considerations>`
-           documentation.
-
-        :Parameters:
-
-          - ``source``: An InputSource, file-like object, or string. In the case
-            of a string the string is the location of the source.
-          - ``location``: A string indicating the relative or absolute URL of
-            the source. Graph's absolutize method is used if a relative location
-            is specified.
-          - ``file``: A file-like object.
-          - ``data``: A string containing the data to be parsed.
-          - ``format``: Used if format can not be determined from source, e.g.
-            file extension or Media Type. Defaults to text/turtle. Format
-            support can be extended with plugins, but "xml", "n3" (use for
-            turtle), "nt" & "trix" are built in.
-          - ``publicID``: the logical URI to use as the document base. If None
-            specified the document location is used (at least in the case where
-            there is a document location).
-
-        :Returns:
-
-          - self, the graph instance.
-
-        Examples:
-
-        >>> my_data = '''
-        ... <rdf:RDF
-        ...   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        ...   xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-        ... >
-        ...   <rdf:Description>
-        ...     <rdfs:label>Example</rdfs:label>
-        ...     <rdfs:comment>This is really just an example.</rdfs:comment>
-        ...   </rdf:Description>
-        ... </rdf:RDF>
-        ... '''
-        >>> import os, tempfile
-        >>> fd, file_name = tempfile.mkstemp()
-        >>> f = os.fdopen(fd, "w")
-        >>> dummy = f.write(my_data)  # Returns num bytes written
-        >>> f.close()
-
-        >>> g = Graph()
-        >>> result = g.parse(data=my_data, format="application/rdf+xml")
-        >>> len(g)
-        2
-
-        >>> g = Graph()
-        >>> result = g.parse(location=file_name, format="application/rdf+xml")
-        >>> len(g)
-        2
-
-        >>> g = Graph()
-        >>> with open(file_name, "r") as f:
-        ...     result = g.parse(f, format="application/rdf+xml")
-        >>> len(g)
-        2
-
-        >>> os.remove(file_name)
-
-        >>> # default turtle parsing
-        >>> result = g.parse(data="<http://example.com/a> <http://example.com/a> <http://example.com/a> .")
-        >>> len(g)
-        3
-
-        """
-
+        resp_agent: URIRef | None = None,
+        primary_source: URIRef | None = None,
+        **args: object,
+    ) -> Graph:
         source = create_input_source(
             source=source,
             publicID=publicID,
@@ -280,18 +198,14 @@ class OCDMGraph(OCDMGraphCommons, Graph):
             format = source.content_type
         could_not_guess_format = False
         if format is None:
-            if (
-                hasattr(source, "file")
-                and getattr(source.file, "name", None)
-                and isinstance(source.file.name, str)
-            ):
-                format = rdflib.util.guess_format(source.file.name)
+            _file = getattr(source, "file", None)
+            if _file is not None and getattr(_file, "name", None) and isinstance(_file.name, str):
+                format = rdflib.util.guess_format(_file.name)
             if format is None:
                 format = "turtle"
                 could_not_guess_format = True
         parser = plugin.get(format, Parser)()
         try:
-            # TODO FIXME: Parser.parse should have **kwargs argument.
             parser.parse(source, self, **args)
         except SyntaxError as se:
             if could_not_guess_format:
@@ -316,41 +230,33 @@ class OCDMGraph(OCDMGraphCommons, Graph):
         return self
 
 class OCDMDataset(OCDMGraphCommons, Dataset):
-    def __init__(self, counter_handler: CounterHandler = None):
+    def __init__(self, counter_handler: CounterHandler | None = None):
         Dataset.__init__(self)
-        self.preexisting_graph = Dataset()
-        OCDMGraphCommons.__init__(self, counter_handler)
+        self.preexisting_graph: Graph | Dataset = Dataset()
+        OCDMGraphCommons.__init__(self, counter_handler)  # type: ignore[arg-type]
 
     def __deepcopy__(self, memo):
         new_graph = OCDMDataset(counter_handler=self.provenance.counter_handler)
 
         # Copy graph data
         for quad in self.quads((None, None, None, None)):
-            new_graph.add(quad)
+            new_graph.add(quad)  # type: ignore[arg-type]
 
         # Copy entity index and metadata
         for key, value in self.entity_index.items():
             new_graph.entity_index[key] = value.copy()
         new_graph.all_entities = self.all_entities.copy()
         for key, value in self.merge_index.items():
-            new_graph._OCDMGraphCommons__merge_index[key] = value.copy()
+            new_graph._OCDMGraphCommons__merge_index[key] = value.copy()  # type: ignore[attr-defined]
 
         return new_graph
 
-    def add(
+    def add(  # type: ignore[override]
         self,
-        triple_or_quad: Union[
-            Tuple["_SubjectType", "_PredicateType", "_ObjectType", Optional[Any]],
-            "_TripleType",
-        ],
-        resp_agent = None,
-        primary_source = None
-    ) -> "Dataset":
-        """
-        Add a triple or quad to the store.
-
-        if a triple is given it is added to the default context
-        """
+        triple_or_quad: tuple[Node, Node, Node] | tuple[Node, Node, Node, Graph | None],
+        resp_agent: object = None,
+        primary_source: object = None,
+    ) -> Dataset:
 
         s, p, o, c = self._spoc(triple_or_quad, default=True)
 
@@ -373,45 +279,18 @@ class OCDMDataset(OCDMGraphCommons, Dataset):
 
         return self
 
-    def parse(
+    def parse(  # type: ignore[override]
         self,
-        source: Optional[
-            Union[IO[bytes], TextIO, InputSource, str, bytes, pathlib.PurePath]
-        ] = None,
-        publicID: Optional[str] = None,  # noqa: N803
-        format: Optional[str] = None,
-        location: Optional[str] = None,
-        file: Optional[Union[BinaryIO, TextIO]] = None,
-        data: Optional[Union[str, bytes]] = None,
-        resp_agent: URIRef = None,
-        primary_source: URIRef = None,
-        **args: Any,
-    ) -> "Graph":
-        """
-        Parse source adding the resulting triples to its own context
-        (sub graph of this graph).
-
-        See :meth:`rdflib.graph.Graph.parse` for documentation on arguments.
-
-        :Returns:
-
-        The graph into which the source was parsed. In the case of n3
-        it returns the root context.
-
-        .. caution::
-
-           This method can access directly or indirectly requested network or
-           file resources, for example, when parsing JSON-LD documents with
-           ``@context`` directives that point to a network location.
-
-           When processing untrusted or potentially malicious documents,
-           measures should be taken to restrict network and file access.
-
-           For information on available security measures, see the RDFLib
-           :doc:`Security Considerations </security_considerations>`
-           documentation.
-        """
-
+        source: IO[bytes] | TextIO | InputSource | str | bytes | pathlib.PurePath | None = None,
+        publicID: str | None = None,  # noqa: N803
+        format: str | None = None,
+        location: str | None = None,
+        file: BinaryIO | TextIO | None = None,
+        data: str | bytes | None = None,
+        resp_agent: URIRef | None = None,
+        primary_source: URIRef | None = None,
+        **args: object,
+    ) -> Graph:
         source = create_input_source(
             source=source,
             publicID=publicID,
@@ -421,20 +300,13 @@ class OCDMDataset(OCDMGraphCommons, Dataset):
             format=format,
         )
 
-        # NOTE on type hint: `xml.sax.xmlreader.InputSource.getPublicId` has no
-        # type annotations but given that systemId should be a string, and
-        # given that there is no specific mention of type for publicId, it
-        # seems reasonable to assume it should also be a string. Furthermore,
-        # create_input_source will ensure that publicId is not None, though it
-        # would be good if this guarantee was made more explicit i.e. by type
-        # hint on InputSource (TODO/FIXME).
-        g_id: str = publicID and publicID or source.getPublicId()
+        g_id = publicID or source.getPublicId() or ""
         if not isinstance(g_id, Node):
             g_id = URIRef(g_id)
 
         context = Graph(store=self.store, identifier=g_id)
-        context.remove((None, None, None))  # hmm ?
-        context.parse(source, publicID=publicID, format=format, **args)
+        context.remove((None, None, None))  # type: ignore[arg-type]
+        context.parse(source, publicID=publicID, format=format, **args)  # type: ignore[arg-type]
         # TODO: FIXME: This should not return context, but self.
 
         unique_subjects = set()
@@ -469,7 +341,7 @@ class OCDMConjunctiveGraph(OCDMDataset):
     OCDMConjunctiveGraph has been renamed to OCDMDataset to reflect
     the migration from the deprecated ConjunctiveGraph to Dataset.
     """
-    def __init__(self, counter_handler: CounterHandler = None):
+    def __init__(self, counter_handler: CounterHandler | None = None):
         warnings.warn(
             "OCDMConjunctiveGraph is deprecated, use OCDMDataset instead",
             DeprecationWarning,

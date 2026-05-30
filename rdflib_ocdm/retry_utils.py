@@ -8,14 +8,13 @@ from __future__ import annotations
 
 import random
 import time
-from functools import wraps
-from typing import Any, Callable, Optional, TypeVar, Union
+from typing import Callable, TypeVar
 
 T = TypeVar('T')
 
 
-def execute_with_retry(func: Callable[..., T], *args: Any, max_retries: int = 5, 
-                      base_wait_time: int = 1, reporter: Any = None, **kwargs: Any) -> T:
+def execute_with_retry(func: Callable[..., T], *args: object, max_retries: int = 5,
+                      base_wait_time: int = 1, reporter: object | None = None, **kwargs: object) -> T:
     """
     A function that executes the given function with retry logic and exponential backoff.
     This is useful when you can't use the decorator directly.
@@ -41,15 +40,15 @@ def execute_with_retry(func: Callable[..., T], *args: Any, max_retries: int = 5,
                 
                 # Log the retry attempt
                 message = f"Query attempt {retry_count}/{max_retries} failed: {e}. Retrying in {wait_time:.2f} seconds..."
-                if reporter and hasattr(reporter, 'add_sentence'):
-                    reporter.add_sentence(message)
+                if reporter is not None and hasattr(reporter, 'add_sentence'):
+                    reporter.add_sentence(message)  # type: ignore[attr-defined]
                 else:
                     print(message)
-                    
+
                 time.sleep(wait_time)
             else:
-                # All retries failed
                 error_message = f"Failed after {max_retries} attempts: {e}"
-                if reporter and hasattr(reporter, 'add_sentence'):
-                    reporter.add_sentence(f"[ERROR] {error_message}")
+                if reporter is not None and hasattr(reporter, 'add_sentence'):
+                    reporter.add_sentence(f"[ERROR] {error_message}")  # type: ignore[attr-defined]
                 raise ValueError(error_message)
+    raise ValueError(f"Failed after {max_retries} attempts")

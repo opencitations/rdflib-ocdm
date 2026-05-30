@@ -27,17 +27,17 @@ from rdflib_ocdm.support import get_prov_count
 
 
 class OCDMProvenance(Dataset):
-    def __init__(self, prov_subj_graph: OCDMGraphCommons, counter_handler: CounterHandler = None):
+    def __init__(self, prov_subj_graph: OCDMGraphCommons, counter_handler: CounterHandler | None = None):
         Dataset.__init__(self)
         self.prov_g = prov_subj_graph
         # The following variable maps a URIRef with the related provenance entity
-        self.res_to_entity: Dict[URIRef, ProvEntity] = dict()
+        self.res_to_entity: Dict[str, ProvEntity] = dict()
         self.all_entities = set()
         if counter_handler is None:
             counter_handler = InMemoryCounterHandler()
         self.counter_handler = counter_handler
 
-    def generate_provenance(self, c_time: float = None) -> None:
+    def generate_provenance(self, c_time: float | None = None) -> None:
         if c_time is None:
             cur_time: str = datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat(sep="T")
         else:
@@ -45,7 +45,7 @@ class OCDMProvenance(Dataset):
         merge_index = self.prov_g.merge_index
         prov_g_subjects = OrderedDict(sorted(self.prov_g.entity_index.items(), key=lambda x: not x[1]['to_be_deleted'], reverse=True))
         for cur_subj, cur_subj_metadata in prov_g_subjects.items():
-            last_snapshot_res: Optional[URIRef] = self._retrieve_last_snapshot(str(cur_subj))
+            last_snapshot_res: Optional[URIRef] = self._retrieve_last_snapshot(cur_subj)
             if cur_subj_metadata['to_be_deleted']:
                 update_query: str = get_update_query(self.prov_g, cur_subj)[0]
                 # DELETION SNAPSHOT
@@ -111,7 +111,7 @@ class OCDMProvenance(Dataset):
         merge_description += "."
         return merge_description
             
-    def _retrieve_last_snapshot(self, prov_subject: URIRef) -> Optional[URIRef]:
+    def _retrieve_last_snapshot(self, prov_subject: URIRef) -> URIRef | None:
         last_snapshot_count: str = str(self.counter_handler.read_counter(str(prov_subject)))
         if int(last_snapshot_count) <= 0:
             return None
@@ -139,21 +139,26 @@ class OCDMProvenance(Dataset):
                     snapshots_list.append(self.add_se(prov_subject=merge_entity, res=last_entity_snapshot_res))
         return snapshots_list
 
-    def add_se(self, prov_subject: URIRef, res: URIRef = None) -> SnapshotEntity:
-        if res is not None and res in self.res_to_entity:
-            return self.res_to_entity[res]
+    def add_se(self, prov_subject: URIRef, res: URIRef | None = None) -> SnapshotEntity:
+        if res is not None and str(res) in self.res_to_entity:
+            entity = self.res_to_entity[str(res)]
+            assert isinstance(entity, SnapshotEntity)
+            return entity
         count = self._add_prov(str(prov_subject), res)
         se = SnapshotEntity(str(prov_subject), self, count)
         return se
 
-    def _add_prov(self, prov_subject: str, res: URIRef) -> Optional[str]:
+    def _add_prov(self, prov_subject: str, res: URIRef | None) -> str:
         if res is not None:
-            res_count: int = int(get_prov_count(res))
+            prov_count = get_prov_count(res)
+            assert prov_count is not None
+            res_count: int = int(prov_count)
             if res_count > self.counter_handler.read_counter(prov_subject):
                 self.counter_handler.set_counter(res_count, prov_subject)
             return str(res_count)
         return str(self.counter_handler.increment_counter(prov_subject))
 
-    def get_entity(self, res: str) -> Optional[ProvEntity]:
+    def get_entity(self, res: str) -> ProvEntity | None:
         if res in self.res_to_entity:
             return self.res_to_entity[res]
+        return None

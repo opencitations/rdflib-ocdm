@@ -71,7 +71,7 @@ class AbstractEntity(ABC): # pragma: no cover
         """
         self.g.remove((self.res, RDFS.label, None))
 
-    def _create_literal(self, p: URIRef, s: str, dt: URIRef = None, nor: bool = True) -> None:
+    def _create_literal(self, p: URIRef, s: str, dt: URIRef | None = None, nor: bool = True) -> None:
         """
         Adds an RDF triple with a literal object inside the graph of the entity
 
@@ -97,7 +97,7 @@ class AbstractEntity(ABC): # pragma: no cover
         uri_list: List[URIRef] = self._get_multiple_uri_references(RDF.type)
         return uri_list
 
-    def _create_type(self, res_type: URIRef, identifier: str = None) -> None:
+    def _create_type(self, res_type: URIRef, identifier: str | None = None) -> None:
         """
         Setter method corresponding to the ``rdf:type`` RDF predicate.
 

@@ -50,3 +50,7 @@ class CounterHandler(ABC): # pragma: no cover
         :return: The newly-updated (already incremented) counter value.
         """
         raise NotImplementedError
+
+
+class SupplierAwareCounterHandler(CounterHandler, ABC):
+    supplier_prefix: str
