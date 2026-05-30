@@ -1,7 +1,7 @@
 <!--
-SPDX-FileCopyrightText: 2023-2025 Arcangelo Massari <arcangelo.massari@unibo.it>
+SPDX-FileCopyrightText: 2023-2026 Arcangelo Massari <arcangelo.massari@unibo.it>
 
-SPDX-License-Identifier: ISC
+SPDX-License-Identifier: CC-BY-4.0
 -->
 
 [<img src="https://img.shields.io/badge/powered%20by-OpenCitations-%239931FC?labelColor=2D22DE" />](http://opencitations.net)
