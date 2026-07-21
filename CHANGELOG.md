@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/opencitations/rdflib-ocdm/compare/v2.0.0...v2.0.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* **graph:** preserve outgoing statements during merges [release] ([17cb8d4](https://github.com/opencitations/rdflib-ocdm/commit/17cb8d49c2795392abf0b9dc0691223eb9ce311e))
+
 # [2.0.0](https://github.com/opencitations/rdflib-ocdm/compare/v1.0.7...v2.0.0) (2026-05-30)
 
 
