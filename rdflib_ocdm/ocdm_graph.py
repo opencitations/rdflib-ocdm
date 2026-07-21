@@ -102,22 +102,23 @@ class OCDMGraphCommons:
         if isinstance(self, Dataset):
             other_graph_iri = _extract_graph_iri(self, other)
 
-            quads_list = list(self.quads((None, None, other, None)))
-            for s, p, o, c in quads_list:
+            incoming_quads = list(self.quads((None, None, other, None)))
+            for s, p, o, c in incoming_quads:
                 self.remove((s, p, o, c))  # type: ignore[arg-type]
                 self.add((s, p, res, c))  # type: ignore[arg-type]
-            quads_list_del = list(self.quads((other, None, None, None)))
-            for s, p, o, c in quads_list_del:
+            outgoing_quads = list(self.quads((other, None, None, None)))
+            for s, p, o, c in outgoing_quads:
                 self.remove((s, p, o, c))  # type: ignore[arg-type]
+                self.add((res, p, o, c))  # type: ignore[arg-type]
         elif isinstance(self, Graph):
-            triples_list = list(self.triples((None, None, other)))
-            for triple in triples_list:
-                self.remove(triple)
-                new_triple = (triple[0], triple[1], res)
-                self.add(new_triple)
-            triples_list_del = list(self.triples((other, None, None)))
-            for triple in triples_list_del:
-                self.remove(triple)
+            incoming_triples = list(self.triples((None, None, other)))
+            for s, p, o in incoming_triples:
+                self.remove((s, p, o))
+                self.add((s, p, res))
+            outgoing_triples = list(self.triples((other, None, None)))
+            for s, p, o in outgoing_triples:
+                self.remove((s, p, o))
+                self.add((res, p, o))
 
         self._OCDMGraphCommons__merge_index.setdefault(res, set()).add(other)
         if other not in self.entity_index:

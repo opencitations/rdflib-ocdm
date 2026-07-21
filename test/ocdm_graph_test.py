@@ -36,11 +36,16 @@ class TestOCDMGraph:
 
         ocdm_graph.merge(entity_a, entity_b)
 
-        assert len(list(ocdm_graph.triples((entity_b, None, None)))) == 0
-
-        creators = list(ocdm_graph.objects(doc, self.DCTERMS.creator))
-        assert len(creators) == 1
-        assert creators[0] == entity_a
+        assert set(ocdm_graph.triples((entity_a, None, None))) == {
+            (entity_a, self.FOAF.name, Literal("Alice")),
+            (entity_a, self.FOAF.age, Literal(30)),
+            (entity_a, self.FOAF.name, Literal("Bob")),
+            (entity_a, self.FOAF.age, Literal(25)),
+        }
+        assert set(ocdm_graph.triples((entity_b, None, None))) == set()
+        assert set(ocdm_graph.triples((doc, self.DCTERMS.creator, None))) == {
+            (doc, self.DCTERMS.creator, entity_a)
+        }
 
         assert entity_a in ocdm_graph.merge_index
         assert entity_b in ocdm_graph.merge_index[entity_a]
@@ -88,6 +93,34 @@ class TestOCDMGraph:
 
         assert entity_b in ocdm_graph.entity_index
         assert ocdm_graph.entity_index[entity_b]["to_be_deleted"]
+
+    def test_merge_dataset_preserves_graph_contexts(self):
+        dataset = OCDMDataset(counter_handler=self.counter_handler)
+        entity_a = URIRef("http://example.org/person/alice")
+        entity_b = URIRef("http://example.org/person/bob")
+        colleague = URIRef("http://example.org/person/carol")
+        document = URIRef("http://example.org/document/1")
+        retained_graph = dataset.graph(URIRef("http://example.org/graph/retained"))
+        merged_graph = dataset.graph(URIRef("http://example.org/graph/merged"))
+        reference_graph = dataset.graph(URIRef("http://example.org/graph/reference"))
+
+        dataset.add((entity_a, self.FOAF.name, Literal("Alice"), retained_graph))
+        dataset.add((entity_b, self.FOAF.name, Literal("Bob"), merged_graph))
+        dataset.add((entity_b, self.FOAF.knows, colleague, merged_graph))
+        dataset.add((document, self.DCTERMS.creator, entity_b, reference_graph))
+        dataset.preexisting_finished()
+
+        dataset.merge(entity_a, entity_b)
+
+        assert set(dataset.quads((entity_a, None, None, None))) == {
+            (entity_a, self.FOAF.name, Literal("Alice"), retained_graph.identifier),
+            (entity_a, self.FOAF.name, Literal("Bob"), merged_graph.identifier),
+            (entity_a, self.FOAF.knows, colleague, merged_graph.identifier),
+        }
+        assert set(dataset.quads((entity_b, None, None, None))) == set()
+        assert set(dataset.quads((document, self.DCTERMS.creator, None, None))) == {
+            (document, self.DCTERMS.creator, entity_a, reference_graph.identifier)
+        }
 
     def test_backward_compatibility_ocdm_conjunctive_graph(self):
         with warnings.catch_warnings(record=True) as w:

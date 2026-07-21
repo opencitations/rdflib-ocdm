@@ -5,40 +5,22 @@ SPDX-License-Identifier: CC-BY-4.0
 -->
 
 [<img src="https://img.shields.io/badge/powered%20by-OpenCitations-%239931FC?labelColor=2D22DE" />](http://opencitations.net)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rdflib-ocdm?logo=python&logoColor=white)](https://pypi.org/project/rdflib-ocdm/)
 [![Run tests](https://github.com/opencitations/rdflib-ocdm/actions/workflows/run_tests.yml/badge.svg)](https://github.com/opencitations/rdflib-ocdm/actions/workflows/run_tests.yml)
+[![Coverage](https://opencitations.github.io/rdflib-ocdm/coverage-badge.svg)](https://opencitations.github.io/rdflib-ocdm/)
 [![Pyright](https://github.com/opencitations/rdflib-ocdm/actions/workflows/pyright.yml/badge.svg)](https://github.com/opencitations/rdflib-ocdm/actions/workflows/pyright.yml)
 [![Ruff](https://github.com/opencitations/rdflib-ocdm/actions/workflows/ruff.yml/badge.svg)](https://github.com/opencitations/rdflib-ocdm/actions/workflows/ruff.yml)
-[![Coverage](https://opencitations.github.io/rdflib-ocdm/coverage-badge.svg)](https://opencitations.github.io/rdflib-ocdm/)
 [![REUSE status](https://api.reuse.software/badge/github.com/opencitations/rdflib-ocdm)](https://api.reuse.software/info/github.com/opencitations/rdflib-ocdm)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rdflib-ocdm?logo=python&logoColor=white)](https://pypi.org/project/rdflib-ocdm/)
 [![PyPI version](https://img.shields.io/pypi/v/rdflib-ocdm?logo=pypi&logoColor=white)](https://pypi.org/project/rdflib-ocdm/)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/opencitations/rdflib-ocdm)
 
 # rdflib-ocdm
 
-A Python library that extends [RDFLib](https://github.com/RDFLib/rdflib) to support the OpenCitations Provenance Model, providing provenance tracking and change management capabilities for RDF data.
+rdflib-ocdm extends [RDFLib](https://github.com/RDFLib/rdflib) with provenance tracking based on the [OpenCitations Provenance Model](https://opencitations.net/model).
 
-## Overview
+Its two main classes, `OCDMGraph` and `OCDMDataset`, inherit from RDFLib's `Graph` and `Dataset` respectively. The OCDM layer adds methods for recording who changed what and when.
 
-`rdflib-ocdm` is designed to be fully compatible with RDFLib while adding specialized functionality for handling provenance information according to the OpenCitations Provenance Model. It provides mechanisms for:
-
-- Tracking provenance information for RDF entities
-- Managing entity snapshots to record changes over time
-- Handling entity creation, modification, and merging with proper provenance
-- Storing and retrieving RDF data with provenance information
-
-This library serves as a retrocompatible extension to RDFLib that adds support for the OpenCitations Provenance Model, particularly focusing on provenance tracking and change management.
-
-While [oc_ocdm](https://github.com/opencitations/oc_ocdm) is a Python interface specifically designed for creating and managing bibliographic data according to the OpenCitations Data Model, `rdflib-ocdm` can be considered a subset of both RDFlib and oc_ocdm. The key advantage of `rdflib-ocdm` is that it allows you to use the OpenCitations provenance model with **any type of data**, not just bibliographic data.
-
-## Key Features
-
-- **Extended Graph Classes**: `OCDMGraph` and `OCDMConjunctiveGraph` that inherit from RDFLib's `Graph` and `ConjunctiveGraph` classes
-- **Provenance Tracking**: Automatic generation of provenance information when entities are created or modified
-- **Snapshot Management**: Creation and management of snapshot entities to record the state of entities at different points in time
-- **Counter Handlers**: Various implementations for managing entity identifiers (in-memory, filesystem, SQLite)
-- **Storer**: Utilities for storing RDF data in various formats and endpoints
-- **Domain Agnostic**: Unlike oc_ocdm which is specific to bibliographic data, rdflib-ocdm can be used with any type of RDF data
+Calling `generate_provenance()` creates timestamped provenance snapshots for entities whose tracked state changed. Snapshot sequence numbers are managed through counter handler backends (in-memory, filesystem, SQLite, Redis). Unlike [oc_ocdm](https://github.com/opencitations/oc_ocdm), which targets bibliographic data specifically, rdflib-ocdm is domain-agnostic.
 
 ## Installation
 
@@ -48,76 +30,70 @@ pip install rdflib-ocdm
 
 ## Usage
 
-### Basic Usage
+### Basic usage
 
 ```python
-from rdflib import URIRef, Literal
-from rdflib_ocdm.ocdm_graph import OCDMGraph
+from rdflib import Literal, URIRef
 from rdflib_ocdm.counter_handler.in_memory_counter_handler import InMemoryCounterHandler
-from rdflib_ocdm.storer import Storer
+from rdflib_ocdm.ocdm_graph import OCDMGraph
 
-# Create a new OCDM graph with a counter handler
 counter_handler = InMemoryCounterHandler()
 g = OCDMGraph(counter_handler)
 
-# Add triples with provenance tracking
 resp_agent = URIRef("https://orcid.org/0000-0002-8420-0696")
 primary_source = URIRef("https://api.crossref.org/")
-g.add((URIRef("https://example.org/resource"), 
-       URIRef("http://purl.org/dc/terms/title"), 
-       Literal("Example Resource")),
-       resp_agent=resp_agent,
-       primary_source=primary_source)
+g.add(
+    (
+        URIRef("https://example.org/resource"),
+        URIRef("http://purl.org/dc/terms/title"),
+        Literal("Example Resource"),
+    ),
+    resp_agent=resp_agent,
+    primary_source=primary_source,
+)
 
-# Generate provenance information
 g.generate_provenance()
 
-# Store the graph
-storer = Storer(g, output_format="json-ld")
-storer.store_graphs_in_file("output.json")
+print(g.serialize(format="turtle"))
+
+prov = g.get_provenance_graphs()
+print(prov.serialize(format="nquads"))
 ```
 
-### Working with Existing Data
+### Working with existing data
 
-When working with pre-existing RDF data, you need to establish a baseline state from which changes can be tracked. The `preexisting_finished` method serves this critical purpose:
-
-1. It marks a specific point in time as the baseline state of your graph
-2. It creates a snapshot of this baseline state for each entity
-3. When you later call `generate_provenance()`, the system will calculate the differences (deltas) between the current state and this baseline
-
-This delta calculation is essential for accurate provenance tracking, as it allows the system to record exactly what changed, when it changed, and who made the change.
+When working with pre-existing RDF data, you need to establish a baseline from which changes can be tracked. `preexisting_finished()` marks the current graph state as that baseline and creates an initial provenance snapshot for each entity. When you later call `generate_provenance()`, the system computes the delta between the baseline and the current state, recording exactly what changed, when, and by whom. Without calling `preexisting_finished()`, all triples are treated as newly created.
 
 ```python
-from rdflib import URIRef, Literal
-from rdflib_ocdm.ocdm_graph import OCDMGraph
+from rdflib import Literal, URIRef
 from rdflib_ocdm.counter_handler.in_memory_counter_handler import InMemoryCounterHandler
+from rdflib_ocdm.ocdm_graph import OCDMGraph
 
-# Create a graph and load existing data
 g = OCDMGraph(InMemoryCounterHandler())
 g.parse("existing_data.ttl", format="turtle")
 
-# Mark the current state as the baseline for delta calculation
-# This is crucial for the system to know what's "original" vs. what's "changed"
 resp_agent = URIRef("https://orcid.org/0000-0002-8420-0696")
 primary_source = URIRef("https://example.org/data-source")
 g.preexisting_finished(resp_agent=resp_agent, primary_source=primary_source)
 
-# Now you can make changes to the graph
-g.add((URIRef("https://example.org/resource"), 
-       URIRef("http://purl.org/dc/terms/description"), 
-       Literal("Updated description")),
-       resp_agent=resp_agent,
-       primary_source=primary_source)
+g.add(
+    (
+        URIRef("https://example.org/resource"),
+        URIRef("http://purl.org/dc/terms/description"),
+        Literal("Updated description"),
+    ),
+    resp_agent=resp_agent,
+    primary_source=primary_source,
+)
 
-# Generate provenance information that will calculate and record the deltas
-# between the baseline state and the current state
 g.generate_provenance()
 
-# Get the provenance graphs that contain the delta information
 prov_graphs = g.get_provenance_graphs()
 ```
 
-## Running Tests
+For working with SPARQL endpoints, `Reader.import_entities_from_triplestore()` imports entities from a triplestore into an `OCDMGraph` or `OCDMDataset`, while `Storer.upload_all()` pushes graph changes back as batched update queries.
+
+## Running tests
 
 ### Prerequisites
 
@@ -132,13 +108,14 @@ cd rdflib-ocdm
 uv sync --locked --all-extras --dev
 ```
 
-### Running Tests
+### Running tests
 
 ```bash
 uv run pytest test/ -v
 ```
 
 Run with coverage:
+
 ```bash
 uv run coverage run
 uv run coverage report
@@ -157,10 +134,10 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribut
 
 ISC License
 
-## Related Projects
+## Related projects
 
-- [oc_ocdm](https://github.com/opencitations/oc_ocdm): A Python library for importing, creating, modifying, and exporting RDF data structures compliant with the OpenCitations Data Model (OCDM v2.0.1). It provides a specialized interface for working with bibliographic data according to the OpenCitations specifications.
+- [oc_ocdm](https://github.com/opencitations/oc_ocdm): a Python library for creating and managing bibliographic RDF data according to the OpenCitations Data Model.
 
-- [time-agnostic-library](https://github.com/opencitations/time-agnostic-library): A Python library that enables time-travel queries on RDF datasets compliant with the OpenCitations provenance model. It allows users to query different versions of the data at specific points in time, supporting version materialization and various structured query types across versions and deltas.
+- [time-agnostic-library](https://github.com/opencitations/time-agnostic-library): a Python library for time-travel queries over RDF datasets that follow the OpenCitations provenance model.
 
-- [heritrace](https://github.com/opencitations/heritrace): HERITRACE (Heritage Enhanced Repository Interface for Tracing, Research, Archival Curation, and Engagement) is a semantic editor designed for GLAM professionals (galleries, libraries, archives, museums). It enables non-technical domain experts to enrich and edit metadata with robust semantic capabilities, focusing on user-friendliness, provenance tracking, and change management.
+- [heritrace](https://github.com/opencitations/heritrace): an editor for RDF data, with built-in provenance and change tracking.
