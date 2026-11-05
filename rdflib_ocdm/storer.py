@@ -76,7 +76,7 @@ class Storer:
                     sparql: SPARQLWrapper = SPARQLWrapper(triplestore_url)
                     sparql.setQuery(query_string)
                     sparql.setMethod("POST")
-                    sparql.query()
+                    sparql.query().response.read()
                     return True
 
                 execute_with_retry(
