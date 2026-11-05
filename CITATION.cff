@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it using these metadata.
+title: rdflib-ocdm
+authors:
+  - name: Arcangelo Massari
+version: 2.0.2
+date-released: '2026-11-05'
+url: https://archive.softwareheritage.org/swh:1:snp:2de911f733d8c9dc1ddc54c67f7f510249604d55;origin=https://github.com/opencitations/rdflib-ocdm

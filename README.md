@@ -141,3 +141,17 @@ ISC License
 - [time-agnostic-library](https://github.com/opencitations/time-agnostic-library): a Python library for time-travel queries over RDF datasets that follow the OpenCitations provenance model.
 
 - [heritrace](https://github.com/opencitations/heritrace): an editor for RDF data, with built-in provenance and change tracking.
+
+<!-- software-citation-action:start -->
+To cite the latest version of this software (2.0.2), use this BibTeX entry:
+
+```bibtex
+@software{rdflib-ocdm-2.0.2,
+author = {Arcangelo Massari},
+title = {rdflib-ocdm},
+url = {https://archive.softwareheritage.org/swh:1:snp:2de911f733d8c9dc1ddc54c67f7f510249604d55;origin=https://github.com/opencitations/rdflib-ocdm},
+version = {2.0.2},
+year = {2026}
+}
+```
+<!-- software-citation-action:end -->
