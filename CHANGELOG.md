@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/opencitations/rdflib-ocdm/compare/v2.0.1...v2.0.2) (2026-11-05)
+
+
+### Bug Fixes
+
+* **storer:** read update responses before closing connections [release] ([f6a5c0f](https://github.com/opencitations/rdflib-ocdm/commit/f6a5c0f9b71e96f37f707e1724655dcf5b9e174e))
+
 ## [2.0.1](https://github.com/opencitations/rdflib-ocdm/compare/v2.0.0...v2.0.1) (2026-07-21)
 
 
